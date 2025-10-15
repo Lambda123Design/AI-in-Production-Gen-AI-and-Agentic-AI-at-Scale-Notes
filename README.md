@@ -228,9 +228,171 @@ After the command runs, your Next.js app will be created inside your projects di
 
 # **K) Day 2 - Building Your First FastAPI Backend for Production LLM Deployment**
 
+And so now I’m going to go in cursor to “File → New Window,” and up it comes. Then I go to “Open Project,” navigate into my projects directory, and there is the folder called sass. I press open, and here is our new Sass project. Let me make this bigger for you so we can take a closer look at our pride and joy.
+
+We’ve got a directory called “pages” because we’re using the Pages Router, a directory called “public,” another called “styles,” and then a bunch of different configuration files. This is going to be our new home for the rest of this week. I’m going to start by bringing up a terminal with the shortcut “Ctrl + backtick ( ` ),” if you remember that one. I also closed down an AI thing that was here — you can keep it open and ask it questions if you wish.
+
+Now before we go on, we’ve got another project called “production,” which I have running in another window. That project has our recipe for what we’re going to do today. You can click between the two windows, but that might be a bit awkward. So I’m actually going to copy across all the markdown files that contain the instructions for what we’re going to do this week. You don’t need to do this; you can just refer back to the other window, or even use a File Explorer or Mac Finder and copy the folder manually if you wish.
+
+I’m doing this only for convenience. I’ll create a new folder and call it “week1.” Inside it, I’ll run a simple command — this is a Mac command — but as I said, you can just do it via the user interface. I’ll go up one directory, then into “production/week1,” take all those files, and copy them into the new “week1” folder that I’ve just created. That’s done. Now when I open that folder, you’ll see that all the files are there.
+
+I’m doing this just so we don’t have to flip between two different windows. You can do this however you prefer. I’ll now open the preview of “day2,” close this screen here for now, and we’re back in the workspace. We’re still in Step 1 — Creating your Next.js project.
+
+Now that we’ve opened the project, we can see a little description of what we have here. Indeed, we’ve got the “pages” subdirectory just as described. Within it, we have “_app.tsx” — remember, these “.tsx” files combine TypeScript and HTML into a single file type. We’ve also got “_document.tsx,” “index.tsx,” and various other things. There’s also an “api” folder with a file called “hello.ts.”
+
+But we’re going to be removing that, just as the guide says. Since we’ll be using a Python backend, not a Next.js (JavaScript) backend, this “api” folder is redundant. So right-click it and select “Delete.” It’ll ask, “Are you sure?” — choose “Yes,” and it’s gone. Great, we’ve cleaned that up.
+
+Next, a quick introduction to Tailwind CSS. I didn’t cover this earlier, but Tailwind is a CSS framework. In the old days, we had to manually write a lot of styling code — and while you could get good at it, styling was always a bit of a dark art, as front-end developers know all too well. Tailwind gives you a pre-built set of styles you can apply using simple, descriptive class names. You’ll see examples like “bg-blue-500,” “text-center,” or “p-4,” and you’ll quickly get used to this syntax. It makes styling much easier — just mimic, copy, and paste the classes you like.
+
+Alright, onwards to Step 2. The rest of this setup will be similar for all of Weeks 1 and 2 — we’ll mostly follow instructions, set things up, and paste in code. It might feel like everything is environment setup, and that’s true — because production deployment is all about setup. You’ll get used to this mode of working soon enough.
+
+The first thing we want to do now is create a new folder called “api.” You might say, “But we just deleted an ‘api’ folder!” True — we deleted the one inside “pages.” Now, we’re creating a top-level folder. So right-click in the main project area, choose “New Folder,” and name it “api.” It should appear at the top level of the project structure, directly under “sass.”
+
+Next, we’ll create another top-level file — not a folder — called “requirements.txt.” (Make sure to spell it exactly like that.) This is the file that lists all Python packages that need to be installed automatically using pip. You’ll notice we have three packages to install: “fastapi,” “uvicorn,” and “openai.” These go into the requirements.txt file — they’re the dependencies for our backend.
+
+Now, let’s populate the “api” folder we just created. Inside it, create a new file named “index.py.” It must be named exactly “index.py” — if not, things will break later. This precision matters. Open that file and paste in the following FastAPI code:
+
+“from fastapi import FastAPI
+from openai import OpenAI
+
+app = FastAPI()
+
+@app.get('/api')
+async def root():
+client = OpenAI()
+prompt = 'Come up with a new business idea for AI agents.'
+response = client.chat.completions.create(
+model='gpt-5-nano',
+messages=[{'role': 'user', 'content': prompt}]
+)
+return response.choices[0].message.content”
+
+So what is this doing? This is our FastAPI code. We start by creating an app instance using “app = FastAPI().” In FastAPI, we describe backend routes like this — when someone sends a request to our web address at “/api,” this Python function (“root”) gets called. Whatever this function returns becomes the HTTP response. We also specify that it’s a plain-text response type.
+
+Inside the function, we instantiate the OpenAI client using “client = OpenAI().” Then we define a “prompt” — in this case, the message “Come up with a new business idea for AI agents.” This is what our backend will send to the OpenAI API.
+
+Next, we call “client.chat.completions.create()” with the model “gpt-5-nano,” which is the ultra-cheap variant of GPT-5, passing in our prompt. We then return the output using “response.choices[0].message.content,” which extracts the model’s text reply.
+
+That’s it — we’ve got our backend route “/api” defined in “index.py.” It makes a call to a large language model and returns its response.
+
+If you don’t want to use OpenAI (for example, to avoid the $5 upfront credit), you can substitute any of the alternatives mentioned in the guides. Gemini currently has a free plan (at least as of this recording), and OpenRouter also offers many free models you can run. You’ll find detailed instructions in the setup guides for those.
+
+So that completes our setup for now — a working backend route in FastAPI that sends a prompt to an AI model and returns its response. This is the only AI-related code we’ll write today — everything else from here will focus on deployment and configuration. But for now, enjoy this small piece of AI code, because it’s the heart of what our backend will do.
+
 # **L) Day 2 - Deploying Full-Stack AI Apps with Next.js Frontend and FastAPI Backend**
+
+Back in our instructions, we’re now on Step 3: Creating your first page.
+
+Before we start coding, there’s a short explanation about the Pages Router. By default, components in a Next.js project can run both on the server and on the client. But since we’re not using a JavaScript server — our server is going to be Python FastAPI — we need to make sure the code for our pages only runs in the browser. To do that, we include the special directive "use client" at the very top of each page file. That tells Next.js that this code should be executed on the client side only.
+
+Alright, the first thing we’re going to do is replace the default contents of our main page, which is the file "index.tsx". This file is what gets served when someone visits our website’s root URL. By default, it just says something like “Welcome to a new Next.js app.” So, open index.tsx, press Ctrl + A to select everything, delete it all, and paste in the new code from our instructions.
+
+So, what does this code do? At the very top, it has "use client", since this page is going to run fully in the browser. It also imports "useEffect" from React, which allows us to run some code whenever React decides it’s needed — typically when the page is first loaded.
+
+Inside useEffect, we’re calling the Next.js function "fetch". This lets the frontend make an API call to the backend. The URL it fetches from is "/api". The response that comes back — which will be the business idea generated by our FastAPI backend — is then stored in a React state variable called "idea".
+
+So, in plain terms: when the page first loads, it sends a request to our Python backend at /api, gets a response back from GPT, and displays that as the “business idea.”
+
+The rest of the code defines the layout of the web page. This is where you see the magic of TSX, where TypeScript and HTML blend together. After the logic, there’s a "return (...)" statement — and suddenly it’s all HTML-like code. We have a <h1> heading that says “Business Idea Generator”, and below it, we display the idea itself.
+
+You’ll notice the HTML tags have Tailwind CSS classes, like "text-center", "mt-10", or "font-bold". Instead of writing long, custom CSS, we’re using Tailwind’s descriptive class names to style elements instantly.
+
+When you open the page in a browser, at first it’ll show the word “Loading…” — because that’s what we’ve set as the default state before the API call completes. Then, when the backend sends back the generated idea, the page automatically updates and displays it. That’s React doing its reactive magic.
+
+If the front-end logic feels a bit fast for you, don’t worry. This isn’t a front-end course — just focus on the idea that we now have a page written in TSX that talks to our backend API and shows dynamic results. You’ll get more comfortable with these files over time.
+
+Now, heading back to the instructions, the next thing to do is update the "_app.tsx" file. So, open _app.tsx, select all its contents, delete them, and paste in the new version. This file basically imports our styles and renders the app — nothing too fancy here.
+
+Next, go back again to the instructions and scroll down to the step for "_document.tsx". This is the global HTML structure of the entire site — it defines the overall document, the <html> and <body> tags, and metadata. So open _document.tsx, select everything, delete it, and paste in the new code.
+
+You’ll see inside it something like "export default function Document()" returning an HTML-like block with <Html>, <Head>, and <Body> tags. It sets the title to “Business Idea Generator” and includes a description meta tag. This is the file that shapes the top-level layout of your app.
+
+Okay, now we’re ready to configure and deploy our project.
+
+We’re deploying again to Vercel, just like in Day 1. You might remember that previously we created a "vercel.json" file to tell Vercel how to handle the frontend and backend. The good news is — this time, we don’t need it. Because we’ve followed all of Vercel’s defaults (for example, naming our backend file "index.py" and having "requirements.txt" at the root), Vercel will automatically detect everything. It knows we have a FastAPI backend, a Next.js frontend, and the right dependencies. It’s all just going to work.
+
+So, let’s link this project to Vercel and deploy it.
+
+Open a new terminal window. Hopefully, you already installed the Vercel CLI in Day 1. If not, you’ll need to go back and do that. Assuming it’s installed, type the command "vercel link".
+
+This command connects your local project to a project in Vercel’s cloud. The CLI will ask:
+
+“Set up and link project sass?” — choose Yes.
+
+“Which scope should contain your project?” — pick the default.
+
+“Link to existing project?” — answer No, since we’re creating a new one.
+
+“What’s your project’s name?” — type "sass".
+
+“In which directory is your code located?” — just press Enter, since it’s right here.
+
+And then — bam! It’s done. The project is now created in Vercel and linked to your local files.
+
+Next, we need to add our OpenAI API key so that the backend can authenticate when calling GPT.
+
+In the terminal, type "vercel env add OPENAI_API_KEY".
+
+Be extremely careful with this — it must match the variable name used in your code exactly. If you accidentally type "OPEN_API_KEY" or "openai_key", it won’t work, and it’ll be hard to debug.
+
+When prompted, paste your actual API key (the one from the OpenAI platform) and hit Enter. It’ll ask which environments to apply it to — select them all. You can do that by pressing A for “All,” then Enter.
+
+Obviously, don’t show this key to anyone — treat it like a password.
+
+Once that’s done, there’s just one command left: "vercel ."
+
+That dot at the end tells Vercel to deploy the current directory as the project. Press Enter, and the magic begins.
+
+Vercel now packages your app, recognizes it’s a Next.js frontend with a FastAPI backend (thanks to our "index.py" and "requirements.txt" files), installs all dependencies, and deploys everything to the cloud.
+
+Vercel automatically sets up two environments: a preview environment for testing changes and a production environment for live deployment. Since this is our first deploy, it’ll go straight to production. Future deployments will go to preview first.
+
+You’ll see logs showing that the build is running, and then — it’s deployed!
+
+Now let’s open the live app.
+
+In Cursor (or VS Code), you can Command + Click (on Mac) or Control + Click (on Windows) the link that appears after deployment to open it in your browser.
+
+Drumroll, please… The app loads, and you’ll see your front end saying “Business Idea Generator”. At first, it displays “Loading…” — and a few seconds later, you’ll see a full business idea generated by GPT-5 Nano.
+
+For example, one possible output might be:
+
+“The Nexus Agent — an Agent-as-a-Service platform that lets small and medium-sized businesses deploy autonomous AI agent teams to run end-to-end business processes across their apps with governance, safety, and explainability.”
+
+It’s quite a detailed idea — whether it’s a good one or not, I’ll let you decide!
+
+But what matters is this: you’ve now got a fully deployed production app running in Vercel. The frontend is built with Next.js, the backend runs on FastAPI in Python, and the two are communicating perfectly.
+
+It’s simple, but it’s also powerful — because this is your foundation. From here, you can keep expanding: add routes, new pages, smarter prompts, and real backend logic. And we’ve built and deployed it all by Day 2.
 
 # **M) Day 2 - Adding Real-Time Streaming and Professional UI to Your LLM App**
 
+But wait — there’s a bit more to finish off today. The instructions suggest running "vercel --prod", but technically it’s not required because we’ve already deployed to production. You can do it if you wish, and we’ll run it again later. For now, the focus is on adding real-time streaming and making the results display nicely in Markdown, so they look more elegant than plain text.
+
+First, we need to install a few packages. One of the great things about React is the massive ecosystem of libraries. For showing Markdown in the front end, we can use some pre-built components. In the "sass" folder, run "npm install" with the required packages, and Node will install them all. Think of "npm install" as the frontend equivalent of Python’s "pip install" — it brings in all the dependencies we need.
+
+Next, we update "index.tsx" to make the frontend juicier. Open "index.tsx", select all, delete, and paste in the new code. The main change is that this version handles streaming back information from the server. It also uses a component called "ReactMarkdown", which renders Markdown nicely instead of just showing raw text. This is a classic example of the kind of React component you can just drop in from the ecosystem.
+
+If you check the code, you’ll notice that the backend streaming logic is now supported by the frontend: React listens for chunks from the backend and appends them in real time. The Markdown component takes care of rendering headings, bullet points, and formatted text elegantly.
+
+We also need to ensure that Tailwind works properly with the Markdown content. Sometimes Tailwind overrides standard HTML styles, hiding default <h2> and <h3> formatting. To fix this, open "globals.css" inside "public/styles", scroll to the end, and paste in traditional HTML styles. Don’t replace what’s already there — just append these so Markdown renders correctly.
+
+Next, update the backend "index.py" to stream results. Open "index.py", select all, and paste in the new version. Here, "client.completions" now has "stream=True", and the FastAPI response uses "StreamingResponse" to send the data back to the frontend in chunks. This ensures the frontend sees the content as it’s generated, rather than waiting for the entire response to finish.
+
+Once that’s done, we can deploy again. In the terminal, run "vercel ." to deploy the current project. Since this is the second deployment, it will go to the preview environment rather than production. This way, the original production link remains untouched, and you can test the new features safely. Preview deployments are handy because you can experiment with streaming, styling, and Markdown without affecting the live site.
+
+When the deployment finishes, Command + Click (Mac) or Control + Click (Windows) the preview link. The page loads and initially shows "Loading...". Then, as GPT-5 generates the business idea, it streams back, and you’ll see the content appear live in chunks.
+
+To make the results more structured, update the prompt in "index.py" to encourage Markdown formatting. For example, change the prompt to something like: "Reply with a new business idea for AI agents formatted with headings, subheadings, and bullet points". This encourages the LLM to produce structured, attractive Markdown output.
+
+Finally, polish the frontend further. Open "index.tsx" again, replace its contents with the new version from the instructions, save, and that’s it. The page now shows streaming Markdown results in a visually appealing layout with Tailwind styling. Even if you’re not an expert in front-end development, this approach gives you a professional-looking interface with minimal effort.
+
+Once ready, deploy to production with "vercel --prod". The command pushes the updated app to the live environment. Open the production link, and now you’ll see the fully styled, streaming business idea generator. It displays a heading like "AI-powered innovation at your fingertips" and dynamically updates the business idea in real-time, formatted with headings, bullets, and sections. You might even see additional details like a team blueprint.
+
+At this point, congratulations! You now have a full-stack application deployed to production: a Next.js frontend using Tailwind CSS and ReactMarkdown, a FastAPI backend streaming GPT-5 responses, and two environments on Vercel — preview and production.
+
+Looking ahead: tomorrow we’ll add authentication, sign-in, and subscription so users can pay to access the business idea generator. On Day 4, we’ll expand the app into a healthcare SaaS, and on Day 5, we’ll redeploy to AWS to compare platforms.
+
+So celebrate this milestone: you’re already 10% of the way through the course, with a solid foundation in production deployment, streaming back-end responses, Markdown rendering, and polished frontend presentation. This is just the beginning, and it’s going to get even juicier.
 
 
