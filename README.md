@@ -1,4 +1,4 @@
-# AI-in-Production-Gen-AI-and-Agentic-AI-at-Scale---Notes
+# AI-in-Production-Gen-AI-and-Agentic-AI-at-Scale-Notes
 This Repository contains my Udemy course notes of "AI in Production: Gen AI and Agentic AI at Scale" by Ed Donner
 
 **Table of Contents:**
@@ -18,6 +18,18 @@ This Repository contains my Udemy course notes of "AI in Production: Gen AI and 
 **F) Day 1 - Managing API Costs and Environment Setup for Production AI Systems**
 
 **G) Day 1 - Course Expectations and Community Support for Production AI**
+
+**H) Day 2 - Building Full-Stack AI Apps: Frontend-Backend Architecture for LLMs**
+
+**I) Day 2 - Building Full-Stack AI Apps with React, FastAPI, and NextJS**
+
+**J) Day 2 - Building Your First Full-Stack AI SaaS with NextJS and FastAPI**
+
+**K) Day 2 - Building Your First FastAPI Backend for Production LLM Deployment**
+
+**L) Day 2 - Deploying Full-Stack AI Apps with Next.js Frontend and FastAPI Backend**
+
+**M) Day 2 - Adding Real-Time Streaming and Professional UI to Your LLM App**
 
 
 
@@ -147,6 +159,33 @@ Finally, I want to remind you that I am available to help and connect with you t
 
 As we wrap up day one, let’s revisit the curriculum. With the first day highlighted as complete, you have successfully deployed your first simple AI app. This marks 5% completion of your journey toward deploying generative and agentic AI into production. Congratulations on reaching this milestone! There is much more ahead, and we begin with day two tomorrow. I am excited to continue this journey with you and can’t wait to see the projects you will build in the coming days.
 
+# **H) Day 2 - Building Full-Stack AI Apps: Frontend-Backend Architecture for LLMs**
+
+Well, if you're still here, that means you haven't been completely put off by day one, which was quite a marathon day. And you're here back for day two of Genii and Agentic AI in production. So what do I have in store for you today? We're going to be talking about the front end and the back end, putting them together to make a full stack application. And I gotta tell you, we are hardly going to scrape the surface of what it takes to write a front end. I imagine some of you are actually front end engineers on this course, looking to get more well-rounded. And for you, the next few slides are going to be kind of easy. For some of you, you might be completely new to front end engineering. I'm just going to cover the basics to give you a framework, to give you the intuition for what it is that goes on when you build the front end side of a web application. I'm going to ask you to review the code, to look at what I'm doing, and get an LLM to explain it if you don't understand it. They're also amazing at generating front end code. Use this to give you the foundation of what's going on when you build a front end and a back end to work together.
+
+Just to start with some definitions: obviously, when we say front end, we're referring to the code that runs in the user's browser—a combination of HTML for the structure of the page, CSS for the appearance of the page, and JavaScript, which is used, for example, for what happens when a button is clicked or for making animations move. It's the interactivity of the page. The back end, on the other hand, is the business logic running on the server. It includes database access, calling LLMs, potentially calling other APIs, storing your secrets, and the like. Your typical web application, of course, has a front end and a back end. The front end makes API calls to the back end by hitting a particular URL, which we call a web endpoint. It hits that URL, which calls the backend code. The backend generates some content and returns it to the front end, typically in the form of a JSON object, and the front end collects that JSON object and uses it to make some changes to the UI.
+
+There is another way the back end is sometimes used, which is that it can be called to create an entire web page, serving up a whole web page to the front end. So the front end might call my home page, and when that URL is called, the server generates the entire home page front end code and passes that back to the browser. So that's a second way that server back end code is used, and we'll be doing both of them in our labs. Now, you may be wondering how Gradio fits into this. If you've taken my other courses, you'll know that I'm a huge fan of Gradio. I use it a lot to build quick UIs that look great, in my opinion. You might be wondering, "Where does the front end/back end of Gradio come in?" Well, here's the answer. Gradio is a back end framework, but confusingly, Gradio is able to generate front end code, and that's kind of kept behind the scenes for us. We write and describe a UI with Python, and Gradio generates the front end for us when it's serving up that user interface. That's why when you're using Gradio, it's a kind of front end/back end in one—because the back end code is able to generate the front end code. We won't be using Gradio in this course because we're doing stuff for reals; we're going to be building real front ends and back ends.
+
+I just want to talk about the progression of different technologies that have happened over time when it comes to front end code. The front end landscape started off some time ago with vanilla HTML web pages, and still some people do this. There's something very satisfying about writing this way. This is where you just have basic HTML code to describe a web page, write your own CSS to do the styling, and have JavaScript. Typically, people use lightweight, low-level libraries like jQuery, which simplify some of the things you have to write in JavaScript. A lot of what you're doing when you write JavaScript at this level is manipulating something called the DOM, which stands for Document Object Model. This is the JavaScript model that represents the web page being rendered in the browser, so that you can do things like navigate around in the code to find a button and then change its color with JavaScript code. That model of what the web page looks like on the browser’s screen is known as the DOM.
+
+Next came the JavaScript front end frameworks—an abstraction layer to make it quicker and more reusable to build sophisticated web pages. There’s a zoo of these frameworks, the most popular by far being React. There's also Vue, Angular, and Svelte, among others. They are all about building UIs from reusable components that you can plug and play together to construct quite sophisticated UIs quickly. Most of the time when you're working with a framework like React, you're building what's known as a single page application (SPA). This refers to the fact that, even though as a user it feels like you're clicking around lots of different web pages, the whole React application—the content and front end code—is loaded up once when you first hit the first URL. From that point onwards, when you're clicking around the application, you're typically making a series of API calls to the server, but it’s all running effectively on the same web page, even though it appears to redraw itself in different ways and feels like you're navigating around.
+
+React and the other frameworks come in two flavors: a JavaScript variant, which is what it began with, and a more modern TypeScript variant, which is React using TypeScript, a strongly typed version of JavaScript. If you're not sure what that means, ask ChatGPT—it will explain it brilliantly. The final step in this progression is the application frameworks that came next and are the most recent part of this story, such as Next.js, which we will be using. React is super flexible and quite bare bones; it doesn’t come with a lot of features like form validation or routing between different sections of your app. The assumption is that if you're using React, you pick and choose which frameworks you want to add together. This is great for flexibility but means there are many different ways to build React apps. Next.js is a higher-level framework built on top of React that bundles together many useful tools so that you don't need to make lots of different decisions—you can just use Next.js and go. It has routing and data fetching built-in, supports server-side rendering, and comes with a bunch of tools built-in, making it very quick to get started.
+
+This completes the narrative of the three tiers of technology that have formed modern front end development.
+
+# **I) Day 2 - Building Full-Stack AI Apps with React, FastAPI, and NextJS**
+
+
+
+# **J) Day 2 - Building Your First Full-Stack AI SaaS with NextJS and FastAPI**
+
+# **K) Day 2 - Building Your First FastAPI Backend for Production LLM Deployment**
+
+# **L) Day 2 - Deploying Full-Stack AI Apps with Next.js Frontend and FastAPI Backend**
+
+# **M) Day 2 - Adding Real-Time Streaming and Professional UI to Your LLM App**
 
 
 
