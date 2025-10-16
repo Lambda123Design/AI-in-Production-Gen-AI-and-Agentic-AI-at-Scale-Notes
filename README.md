@@ -31,6 +31,14 @@ This Repository contains my Udemy course notes of "AI in Production: Gen AI and 
 
 **M) Day 2 - Adding Real-Time Streaming and Professional UI to Your LLM App**
 
+**N) Day 3 - Adding User Authentication to Your Production AI Application**
+
+**O) Day 3 - Adding User Authentication to Production AI Apps with Clerk**
+
+**P) Day 3 - Adding Subscription Billing to Your Production AI SaaS Application**
+
+**Q) Day 3 - Adding Authentication and Billing to Production AI Applications**
+
 
 
 # **A) Day 1 - Instant AI Deployment: Your First Production App on Vercel in Minutes**
@@ -395,4 +403,121 @@ Looking ahead: tomorrow we’ll add authentication, sign-in, and subscription so
 
 So celebrate this milestone: you’re already 10% of the way through the course, with a solid foundation in production deployment, streaming back-end responses, Markdown rendering, and polished frontend presentation. This is just the beginning, and it’s going to get even juicier.
 
+# **N) Day 3 - Adding User Authentication to Your Production AI Application**
+
+I’m so glad you’ve decided to stick around for another day. Hopefully, I didn’t scare you off yesterday with our first — or rather, second — production deployment!
+
+To recap, yesterday we built both a front end and a back end, combined them, and successfully deployed the application. Today, we’ll be focusing on authentication and subscription — two topics that might sound intimidating at first, but I promise, they’re going to be much easier than you might think.
+
+This week is particularly focused on using frameworks that make deployment incredibly straightforward. For example, deploying to Vercel is almost effortless. But don’t be lulled into thinking it’s always this easy — in the next few weeks, we’ll be working with the major cloud platforms: AWS, Google Cloud Platform, and Azure. That’s going to be a completely different experience, so get ready for a whole new level of complexity.
+
+For now, though, things will stay simple.
+
+As a quick recap: we built a full-stack application — that is, an app with both a front end and a back end. The front end runs in the user’s browser and includes HTML, CSS, and JavaScript. The back end contains the business logic that runs on the server. The front end communicates with the back end through API calls — for example, sending a request to an endpoint on the server, which responds with data (usually in JSON format). In our case, we returned plain text, but typically this would be JSON, which the client then uses to update and re-render the page dynamically through React.
+
+We used Next.js with React for our front end and FastAPI with Python for the back end. For styling, we used Tailwind CSS, which helps you write clean, efficient styles without having to deal with tons of custom CSS. We deployed our project on Vercel’s cloud platform, which provided us with two environments — a preview environment and a production environment.
+
+Let’s also quickly revisit the repository setup. It’s a bit intricate, so stick with me. We started by cloning a repository called production, which contains all the instructions, documentation, and guides for this and next week’s work. Inside it, there’s a “week one” folder that outlines what we’ll be doing each day.
+
+We then created a new repository from scratch called sass. I did this intentionally so that you’d get into the habit of creating new projects from the ground up. We could have simply added it as a folder inside the production repo, but that would’ve made things messier. So now you have two separate repos — production, which holds all the documentation and guides, and sass, which is where our actual application code lives.
+
+I also showed a quick trick for copying the guides folder across from production to sass, so it’s easier to reference while working. The production repo also has a community contributions folder — and this is where I’d love to see your input! If you’ve discovered something interesting, built your own repo, or have some helpful notes or code snippets, create a Markdown file with your name, write up your insights, and submit a pull request. That way, others can benefit from your work. Take a look at the folder yourself — you might find some useful content shared by others as well.
+
+In weeks three and four, we’ll move on to different repositories that I’ve already prepared. So, yes — there are going to be lots of repos! But I’ll make sure to keep things organized and easy to follow.
+
+Now, for today’s session, we’re going to be using a service called Clerk — a simple yet powerful authentication platform that helps manage user sign-ups and logins with very little code. There are many authentication solutions available — for instance, AWS Cognito provides a robust, enterprise-grade authentication system — but we’ll use Clerk today because of its simplicity and effectiveness.
+
+The goal is to help you understand the basic principles of authentication. Once you’ve seen how Clerk works, you’ll be able to quickly grasp other systems if you encounter them in your projects. If you’re starting a new project from scratch, I’d highly recommend Clerk for its ease of setup and use — and you’ll see exactly why in a moment.
+
+So, let’s get started with the hands-on part — less chit-chat, more action. Let’s return to our lab environment and continue working on our Business Idea Generator project — but this time, let’s give it some user authentication.
+
+Welcome back to Cursor, our coding environment. Make sure you’re in the sass project, not the production one. I’ve still got the “week one” folder here because I copied it across, but you can always refer back to the original in the production repo if needed. Open the day3.md file to follow along with today’s session — and don’t forget, there’s also a part two for Day 3 that we’ll get to later.
+
+Today’s focus is on user authentication, which will allow users to sign in before using our Idea Generator. They’ll be able to sign in using their email or via social authentication (like Google or GitHub). Behind the scenes, this works by passing JWT tokens (JSON Web Tokens) to the backend to confirm that a valid, signed-in user is making the request.
+
+JWTs are a fascinating topic with lots of depth — if you’re curious, I highly recommend looking them up (ChatGPT can explain them beautifully). But for our purposes, you can just think of them as the secret ingredient that allows platforms like Clerk to securely verify users.
+
+Now, to set up Clerk, we’ll start by creating a Clerk account. Head over to Clerk’s website and click Sign Up. I’ll use an incognito tab for this demo since I’m already logged in. When you first visit the site, click Sign In, then choose Don’t have an account? Sign Up, and create your free account. You can use Google or GitHub to sign in. I used Google during my first setup. You’ll be asked a few quick questions (like whether you’re signing up individually or for work), and once done, you’ll land in the Clerk Dashboard.
+
+This dashboard is where you’ll create and manage your applications. Click Create Application and name it SaaS. You’ll be able to customize which authentication options to allow — for example, email, Google, and GitHub sign-ins. Then click Create Application.
+
+Since I’ve already done this, I won’t recreate mine, but once you do, you’ll see your new app listed in your dashboard.
+
+Next, we’ll install Clerk’s SDK (Software Development Kit) into our Next.js project. Open a terminal and run:
+
+npm install @clerk/nextjs
+
+This is the JavaScript equivalent of pip install in Python. Once that’s done, we’ll also install another helpful package called fetch-event-source, which lets us stream results with authentication support:
+
+npm install @microsoft/fetch-event-source
+
+Now, we need to set up some environment variables. These include:
+
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY (the public key anyone can know)
+
+CLERK_SECRET_KEY (your private key)
+
+You can find these in your Clerk Dashboard under Configure → API Keys. Copy both keys — Clerk will hide the secret key for security, but you can copy it using the clipboard icon. While you’re there, also copy the JWT Template URL; we’ll need it shortly.
+
+Next, go back to your project in Cursor and create a new file in your project root called .env.local. Paste the keys you just copied into that file.
+
+Make sure .env.local is listed in your .gitignore file so these secrets aren’t pushed to your repository — but don’t worry, Next.js already includes that by default. You can verify this because the file will appear slightly grayed out in your editor, indicating that it’s being ignored by Git.
+
+Once that’s done, your environment variables are ready. I’ll add my keys off-screen, and we’ll continue from there in just a moment.
+
+# **O) Day 3 - Adding User Authentication to Production AI Apps with Clerk**
+
+In this step, we began by updating our front-end application code. Specifically, we replaced the contents of the _app.tsx file inside the pages directory with new code that imports and wraps our entire application in a React component called ClerkProvider. This ClerkProvider component provides authentication context and shared functionality across all React components within the application. Essentially, it ensures that authentication and user-related operations are consistently available throughout the app. While this is a simplified explanation, the key idea is that ClerkProvider makes user authentication accessible to all components within our React app.
+
+Next, we created a new page named product.tsx inside the pages directory. This page is a protected route, meaning it’s only accessible to authenticated (logged-in) users. The product.tsx file combines TypeScript and HTML in a React-compatible format. It includes the use client directive at the top, ensuring that the page runs client-side. This page contains the complete functionality for our Business Idea Generator, incorporating components for Markdown rendering, code streaming, and event handling. In essence, this is the main page that users will interact with once they’ve logged in to the platform.
+
+After that, we modified the index.tsx file to serve as a new landing page with sign-in functionality. Previously, index.tsx contained the entire main content of the application, but we’ve now moved most of that to product.tsx. The updated index.tsx acts as the entry point for users who are not yet logged in. It includes authentication components such as SignInButton, SignedIn, and SignedOut. These components determine what content should be displayed depending on the user’s login state. If a user is signed in, the SignedIn component content will render; otherwise, the SignedOut content will appear. Thanks to Clerk, all of this logic is handled automatically without any custom backend logic. This drastically simplifies what used to be a very time-consuming process—something that could have taken weeks or even months to build manually, especially when implementing social login features.
+
+With the front-end setup complete, the next step involved adding our JDBC URL to the .env.local file. This is an important configuration step where we retrieve the database connection string from the “Configure” → “API Keys” section and paste it into the .env.local file. It’s essential that the variable names and formatting exactly match the expected syntax, or the application will fail to connect properly later on.
+
+Following this, we updated our backend dependencies by editing the requirements.txt file. We added a new package called fastapi-clerk-auth, which allows the FastAPI backend to verify that only authenticated users can access specific API routes. This integration ensures that our backend routes are secure and that only logged-in users can send or retrieve data.
+
+Next, we modified the backend route in index.py. This file now imports authentication helpers from fastapi-clerk-auth, and when defining our API route, it checks for valid credentials before processing any request. This ensures that only authenticated users can access the backend endpoints. There’s also an example line in the code showing how to extract the user ID from the credentials—useful for cases where different users might have different permissions or subscription plans. Additionally, a small bug fix was implemented to improve how streamed responses are formatted, ensuring the output displays correctly.
+
+After the backend configuration, we moved on to setting environment variables in Vercel (our hosting platform). We added three key-value pairs—the same ones defined in the .env.local file—using the vercel env add commands. Each variable must match exactly in both name and value to avoid deployment errors. Once these are configured for all environments (by pressing “A” to apply them to all), the deployment environment will have access to the same configurations as our local setup.
+
+Finally, we ran the project locally using the command vercel dev. This command launches the frontend on localhost:3000, allowing us to test the application in development mode. Note that this setup only runs the JavaScript (frontend) part locally—the Python backend isn’t active in this mode. However, this still lets us verify that the frontend is correctly connected to Vercel and that Clerk authentication is functioning properly.
+
+Once the app is running, you’ll see a clean, modern landing page titled “Generate Your Next Big Business Idea” with a sign-in button and “Get Started Free” option. When you’re logged out, this landing page appears; upon signing in through Clerk (using, for example, your Gmail account), the protected product page becomes accessible. You can experiment by signing in or out and observing how Clerk dynamically manages session states and displays the appropriate page content.
+
+# **P) Day 3 - Adding Subscription Billing to Your Production AI SaaS Application**
+
+Before deploying the application to production, we first returned to Vercel, our hosting platform, to finalize some important configuration settings. Inside the SaaS production project, Vercel provides a quick preview of our current production deployment. The instructor navigated to the Settings section and then to Deployment Protection. Since we’re already using Clerk for authentication and access control, we don’t want Vercel to add its own protection layer on top of that. Therefore, under Deployment Protection, the Vercel authentication feature was turned off, and the change was saved. This ensures that our app remains accessible on the internet, but still securely protected through Clerk’s authentication system.
+
+Once that was configured, we proceeded to deploy the application to production by running the command
+vercel --prod.
+This command pushes the finalized version of our SaaS application live to the internet. Alternatively, if we wanted to deploy it first to a preview environment for testing, we could use vercel . (dot) to preview before going live. With the production deployment complete, we launched the live application to see it in action. Upon opening the deployed app, the landing page displayed the familiar message: “Generate Your New Business Idea.” From there, the instructor clicked Sign In, logged in using an existing Clerk account, and confirmed that everything worked perfectly.
+
+Once signed in, the user could interact with the app by clicking Generate Business Idea. Behind the scenes, this triggered a call to the protected backend route—the same route we secured using FastAPI and Clerk authentication earlier. The front-end and back-end exchanged a verification handshake, ensuring that the request came from an authenticated user. We could even see the authentication trace being printed in the backend logs, confirming that the handshake was working correctly. Then, the AI-generated business idea began streaming back to the browser in real time, formatted neatly on the page. The instructor demonstrated how refreshing the page or clicking the button again generated a new business idea, proving that the system was fully functional.
+
+At this point, the application had officially become a secure, full-stack SaaS product, deployed in production with integrated authentication. Although still simple in functionality, it represented a complete working model of a cloud-based SaaS system—something users could log into and interact with live on the internet.
+
+With this, the instructor wrapped up Part 1 of the project, which focused on building the base application, implementing Clerk authentication, and securing both the front-end and back-end. Moving forward, we began Part 2, which introduces subscription management—a critical feature for monetizing the app. In this next phase, we would allow users to subscribe to our Business Idea Generator through paid plans.
+
+To get started, the instructor opened the Week 1 → Day 3, Part 2 folder in Cursor. This section focuses on transforming our SaaS application by integrating Clerk Billing. The goal is to make the Business Idea Generator accessible only to users who have an active subscription. Clerk, in addition to handling user authentication, also provides an integrated billing platform. It can either use its own built-in payment gateway or connect seamlessly to Stripe, which is ideal for real-world payment processing.
+
+The first step to enable billing was to go back to the Clerk Dashboard. On the overview screen for our SaaS app, we could now see a confirmation message that said, “Congratulations, your application has users!”—reflecting our previous logins. In the dashboard’s sidebar, the instructor navigated to Configure → Billing Settings and then to Subscription Plans. For first-time users, a Get Started button would appear, prompting them to enable billing. Clicking this button brings up two payment configuration options: the Clerk Payment Gateway (the simpler, built-in option that we’ll use for testing) and Stripe, which can be used for real transactions if you plan to launch a real paid product. For the purposes of this tutorial, no real money is processed; it’s all test-mode billing.
+
+After enabling billing, the next step was to create subscription plans. Under the “Subscription Plans” section, the instructor demonstrated creating two plans: a Free Plan and a Premium Subscription Plan. To create one, you click Create Plan and then fill in details such as the Plan Name, Key, Description, and Base Fee. The plan key must not contain hyphens—underscores are acceptable. For example, the premium plan key was defined as premium_subscription, with a name of “Premium Subscription.” The monthly base fee was set to $100 per month, and an optional annual discount of $90 per month (for users committing to a yearly plan) was also enabled. The plan was set to be publicly available so that users could see and subscribe to it.
+
+Finally, the instructor pointed out the Features section within each subscription plan. This is where developers can define which features are tied to each plan—allowing different tiers of functionality for free and premium users. In the backend, this can later be implemented by checking the user’s credentials and determining which subscription plan they’re on. That logic would let developers restrict or unlock parts of the app based on the subscription level.
+
+Once everything was configured, we were instructed to take note of the Plan ID, as we would use it in the next step of development. With this setup complete, the instructor concluded the segment by noting that the subscription infrastructure was now ready, and in the upcoming lesson, we would integrate these billing plans directly into our application to enable real subscription-based access.
+
+# **Q) Day 3 - Adding Authentication and Billing to Production AI Applications**
+
+Now that the subscription plans were set up in Clerk, the next step was to update the application code to check subscription status before granting access to premium features. On the Products page (product.tsx), the instructor replaced the existing code with a new version that includes a Protect element. This component ensures that only users with the correct subscription plan—matching the plan ID set up in Clerk, e.g., premium_subscription—can access the idea generator. If the user does not have the required subscription, a fallback view is displayed, which includes a pricing table and a call to choose a subscription plan. The idea generator itself, the main UI for generating business ideas, is only rendered once the subscription check succeeds. Once the changes were saved, the landing page (index.tsx) was also updated to include subscription information and a pricing preview for users who are signed in.
+
+With these updates in place, the instructor deployed the application to production and opened it to verify that everything worked. The landing page displayed the subscription details and pricing, although the hardcoded preview did not yet match the exact prices configured in Clerk (e.g., $100/month). Signing in with an existing account showed the manage account and billing information, confirming the user was already subscribed to the premium plan. Accessing premium features then successfully triggered the idea generator, confirming that the subscription check and protected route were working correctly.
+
+Next, the instructor demonstrated signing in with a new account that had no subscription. This involved Apple authentication, two-factor verification, and using the “Hide My Email” feature to prevent account duplication. Upon signing in, the user was prompted to choose a plan. The Clerk billing system handled the test payment flow, allowing the user to subscribe to the monthly premium plan using a test card. Once the subscription was confirmed, the user could access the premium features and generate business ideas. This workflow confirmed that both the authentication and subscription systems were fully integrated and functioning as intended.
+
+The instructor emphasized how remarkable this was compared to traditional development. Historically, implementing social login, subscription management, and Stripe integration would have taken several months and multiple developers. With Clerk, the entire flow—including authentication, subscription verification, and billing—was implemented in a matter of hours. Users can now manage subscriptions, authenticate with multiple providers, and access protected features seamlessly.
+
+In conclusion, Day Three successfully covered both user authentication and subscription integration, taking the application from a simple, secure SaaS prototype to a fully production-ready platform with subscription-based access. The instructor encouraged learners to review the code, experiment with the front-end, and consider deploying their own apps. The next day would introduce business functionality, focusing on applying AI to the healthcare vertical. Learners were reminded to celebrate progress, noting they were already 15% of the way to production expertise, and to start thinking about extending the app further.
 
