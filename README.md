@@ -39,6 +39,13 @@ This Repository contains my Udemy course notes of "AI in Production: Gen AI and 
 
 **Q) Day 3 - Adding Authentication and Billing to Production AI Applications**
 
+**R) Day 4 - Building Your First Commercial AI App: From Prototype to Business**
+
+**S) Day 4 - Building Healthcare AI Apps with FastAPI and Structured Prompts**
+
+**T) Day 4 - Deploying Your Complete AI Healthcare App to Production on Vercel**
+
+**U) Day 4 - Building a Production Healthcare AI SaaS with Streaming LLMs**
 
 
 # **A) Day 1 - Instant AI Deployment: Your First Production App on Vercel in Minutes**
@@ -520,4 +527,110 @@ Next, the instructor demonstrated signing in with a new account that had no subs
 The instructor emphasized how remarkable this was compared to traditional development. Historically, implementing social login, subscription management, and Stripe integration would have taken several months and multiple developers. With Clerk, the entire flow—including authentication, subscription verification, and billing—was implemented in a matter of hours. Users can now manage subscriptions, authenticate with multiple providers, and access protected features seamlessly.
 
 In conclusion, Day Three successfully covered both user authentication and subscription integration, taking the application from a simple, secure SaaS prototype to a fully production-ready platform with subscription-based access. The instructor encouraged learners to review the code, experiment with the front-end, and consider deploying their own apps. The next day would introduce business functionality, focusing on applying AI to the healthcare vertical. Learners were reminded to celebrate progress, noting they were already 15% of the way to production expertise, and to start thinking about extending the app further.
+
+# **R) Day 4 - Building Your First Commercial AI App: From Prototype to Business**
+
+And welcome back. Welcome to day four of week one. The first thing I want to mention is a little detail that maybe I’ve already mentioned, but when I start with these intro and outro slides, the strip of color that you see here is a cue for what kind of day it’s going to be. This is a blue day, which means it’s a day about project work, about commercial projects, about applications of AI. And we’re going to use this to turn our app into a business app. It’s going to be a very simple business app, but the idea will be for you to take it as a springboard to build in more functionality and make it something juicier. It’s going to be applied to healthcare—that is the game of the day.
+
+First of all, I do want to bring you back to that reminder of the agreement that you made with me—the agreement that hopefully some of you verbalized and, as such, it is a binding commitment—which is that you wouldn’t get frustrated with environment issues. You’re probably getting a flavor for how much of this course is going to be about setup. It’s not like we’re going to be doing as much coding. In fact, so far it’s been, except at the very beginning, mostly copy and paste, because much of what we’re doing with production deployments is going to be platform engineering—configuring stuff, setting it up—and things will go wrong.
+
+On my current courses, I get hundreds of questions, sometimes like a hundred a day, on stuff like environment variables being wrong—at least that’s what it turns out to be. Or there was someone that had a lot of problems connecting to an API that sends emails, and that someone was getting really frustrated. It turned out it was due to some privacy limitations that his company had with a VPN, so that they couldn’t make a secure outbound connection. So each of these problems has come up with relatively little environment configuration in my other courses. This course is going to have a lot of it, so you do need to have a lot of petrol in the tank to put up with the grief you’re going to get setting up environments. Just remember that’s part of the fare.
+
+Building expertise in production and deployments involves a lot of bashing your head against a wall with environment errors until you figure them out, and that is a skill that you get better and better at. I’m here to tell you that every time you spend several hours trying to debug something—which always ends up having some silly explanation at the end of it—it’s so frustrating when you find that, but you’ll be better prepped next time to debug. So that’s part of the skills.
+
+All right, so I’m here to tell you that first of all, do keep an eye on the docs. I try and document everything very carefully, and you’ll find that the documentation for what to do will change from what I show you in the videos, because I’m going to be constantly updating it with the latest stuff. So please don’t be alarmed if the instructions don’t look identical to what I do in the course, because as people hit problems in different systems and different environments, I’ll try and add that to the course. Look out for extra troubleshooting tips that get added in.
+
+Keep experimenting yourself when you hit a roadblock, keep trying and ask LMS, but always verify what they tell you. Don’t trust LMS off the bat—ask two different LMS or make sure it explains its reasoning to you. As I said before, they tend to go with the most obvious bandaid to a particular problem and not take a step back and think of root causes. And try your best not to get frustrated. That was the commitment that you made to me.
+
+Also, I do want to mention again that as we hit rabbit holes, as you come up with things that you don’t know about, don’t let that get you confused—embrace it as an opportunity. I threw in there mention of JWT; you should go and Google that if you’re interested. Stripe—if you’re new to that—then find out more about what Stripe is and what it does and why it is so greatly loved. And server-side routing—I mentioned briefly at one point—that’s something you could look into. It’s a very modern, popular technique, and it’s worth learning more about it if it interests you.
+
+There will be many more things like this where we are just going to scratch the surface of what you could find out about. There are so many different ways that I could explore things in more depth, and I’m sticking to the main line here, but you can explore others and experiment, add things in, and submit stuff—link to it in Community Contributions with your notes on what you’ve discovered.
+
+Okay, with that, it’s time for us to build our healthcare app, shown here by our astronaut who we’ve been following, wearing a stethoscope. So our healthcare app is going to start by being something very simple, which you can then use to build up. But the idea is that we want to build an app to be used in doctors’ offices. Something that’s quite common is that doctors have a consultation with a patient and they take down some rough notes, and those rough notes need some actions taken as a result. Maybe some prescription has to be filed, and then an email has to be sent to the patient giving a summary of what was discovered from that appointment.
+
+And that’s a whole ton of administrative work. So this is going to be a SaaS app to be used by doctors’ offices so that the doctor’s notes can be put into a field, and it will generate the to-dos and the email to go to the patient in a professional way that could then be copied and pasted by the practice into an email to the patient. That’s the story—that’s what we’re going to build. You can see it’s pretty simple; it’s quite a natural extension of what we’ve already built. It’s just got one call in there, but hopefully you can also see how that is something that could be the foundation of a much more sophisticated healthcare app, should you wish to go in that direction.
+
+Okay, and with that, it’s time for us to go to the lab, go back to Casa, and get going with our first commercial project. See you there.
+
+# **S) Day 4 - Building Healthcare AI Apps with FastAPI and Structured Prompts**
+
+And here we are in the SaaS project. I open up the Week One guides. These will be in the production repo as well, and I’m going to open the preview on Day Four so we get to see what we’re doing here. We’re building a healthcare consultation assistant. As I told you, it’s going to take the doctor’s consultation notes as input, generate professional summaries, create actionable next steps, and draft patient-friendly emails.
+
+All right, so let’s start then with step one. We’ve got some new front-end dependencies to install, and we use npm install for that. Let me take this first one here — I’ll copy that. I’m going to bring up a new terminal. Here it is. And now I’m going to paste that in. There it goes, and it installs. And now we’ll do the second one here, which is the associated types, and I paste that there. And I run, and that installs too. Okay. Now let’s hide the terminal.
+
+It’s time for us to update the backend API. So basically it’s the same backend API, except now we’re going to have some more detailed prompting. So let me copy this and paste it in, and then we’ll talk it through. There it is. Okay. So over we go to the API. And this is something which is going to replace the index.py, which is right here. So I select all and I paste.
+
+And let me quickly explain this to you. It’s very similar to before — we’re still using OpenAI. The main difference here is that we have a bigger system prompt. “You’re provided with notes written by a doctor from a patient’s visit. Your job is to summarize the visit for the doctor and provide an email reply with exactly three sections with the headings.” And here are the three sections.
+
+Now, the people from, say, my Agentic course will know well that a nicer way of doing this would be to have it reply with structured outputs, and then take that JSON and return it to the front end. But I want to take things a step at a time. If you want to update this to use structured outputs and to respond with JSON, that would be a much better implementation, and I would encourage you to do so. But for now, we’re just going to have it respond in markdown with these headings.
+
+And so then, otherwise, things are very similar. We’ve changed it from being a GET to being a POST endpoint, so this is now a POST to /api. Also, in addition to the creds that we had before, which are the credentials coming from Clerk, we have another argument here — visit, which is an object of type Visit. And Visit here is a Pydantic object. That means that it is a subclass of BaseModel — Pydantic BaseModel.
+
+Just go to the top — show you. There we go. There it’s imported: from pydantic import BaseModel. And that means that this is one of these Pydantic classes that’s used to describe the schema of a Python object. Its purpose is to describe what a Python object is — which fields it should have. It’s similar to a dictionary, except you’re using real attributes that have a type.
+
+So we’ve got, in this case, a patient_name, a date_of_visit, and notes as the three bits of information here that form this Visit object. And we’ve got that here as the first argument for this endpoint. And the magic of FastAPI is that when you do it this way, FastAPI just builds the right route and expects the right JSON object to be provided in this POST, and it will automatically populate this Pydantic object, Visit, with all of the right fields. So you don’t need to worry about how this JSON object comes in the request and how to pluck out the values and put them into a Python object — FastAPI handles all of that for you, and that’s why people love it.
+
+Okay, so with that out, we can just use visit in our code. This user_prompt populates the information — the patient’s name, date of visit, and their notes — and that is what we will send to GPT-5-nano. The system_prompt that we wrote above the user_prompt, which has got all these details that were passed in in the Visit object, and then we stream back results exactly as we did before. Nothing else has changed.
+
+Okay. And now we’re on to changing the front end. First of all, before we change the actual pages themselves, we’re going to update those two front-end files and documents to reflect some of the changes here. So start with app.tsx. Let’s go find app.tsx in pages. There it is. And replace here. And all we’ve done is added in this import.
+
+We’re importing something called React DatePicker, which is something that we just npm installed — it’s going to give us a date picker, a calendar. And this is a great example of how easy it is to get off-the-shelf React components to add something like a date picker to your webpage. In the days before React, it would be a chore to have a date picker — there would be a lot of JavaScript involved in that. And now it’s just so easy.
+
+All right, back here again. And now we’re going to go to the document.tsx, and we’re going to use that to change the page title and heading. Here’s document.tsx. Let’s paste. There we go — “AI-Powered Medical Consultation Summaries. Healthcare Consultation Assistant.”
+
+Okay, and now back to the instructions. And now the meat of the front-end changes. We’re going to update the products with our new product. And I will take all of this. And now, there’s a fair bit more — front-end code can look quite unwieldy sometimes. There’s a lot to it, but much of this is boilerplate.
+
+Go over to product.tsx and replace everything with our new product. Let’s just take a look at a few things, but this is an exercise for you to look through it. So there’s this idea of state, which are the variables which our front end depends on, that React will automatically refresh the relevant parts of the UI as state changes. And we’ve got a patient name, a visit date, and notes.
+
+And then we’ve got stuff to do with the streaming — much as we had it before — and this is how we’re handling the streaming back. Then this is where we have these forms for the patient name, the date of visit, and the consultation notes. You can see how very easy to read these React components are. It’s a textarea — it’s called notes, it’s required, it’s got eight rows, and it’s got all of the information here.
+
+I also want to show you the date picker. The date picker — this is the React component that we’ve taken off the shelf for picking dates, and you just say you want a date picker and you give it the information that you need.
+
+Okay, and this is the main part of it. This is where it has the title, the heading, the pricing table — sorry, this is the fallback if we’re not signed in — and this is the form if we are. Okay. So that is the front-end code updated. We’re closing in. We’ve got one step to go.
+
+# **T) Day 4 - Deploying Your Complete AI Healthcare App to Production on Vercel**
+
+The last big change for the front end then is the landing page. So this is pages/index.tsx. Here we go. It’s mostly just the reframing of what this is about. So let’s take this — here it is — copy that. So we’re going to index.tsx, paste, and save. Let’s take a look at this. It’s got just better formatting. You can take a look through the Tailwind CSS classes. It’s got a nice heading. It’s got the usual stuff. You’ll see here that the “signed out” section is what you see if the user is signed out, and the “signed in” section is what you see if the user is signed in. This is where it links to the /product route, and it’s got some footer text at the end which says it’s HIPAA compliant, secure, and professional — which, of course, it is not HIPAA compliant. But this is, of course, a demo, so you’ll forgive me for this extra piece to it. I’m sure whatever you build will be.
+
+Okay, so I think with this, let’s go back to the instructions and see what we’ve got left to do. Oh yes, we just have one tiny thing. We did include pydantic classes there, so we have to add pydantic to our requirements.txt. That’s not going to work otherwise. So back here — that would have been a gotcha if we’d forgotten to do that. Save that. Be sure — remember, if you see that white dot there, you have to save it. If you don’t save it, then everything will fail horribly. Hopefully, you have saved it, which means that all that’s left for us to do is vercel --prod.
+
+Can it really be this easy? We’ll see. So we’ll do prod, we’ll let that run, and I will speak to you in a second.
+
+Okay, so it’s time for us to try this out. Let’s go to production. Let’s see — here it goes, opening it up. And here’s our landing page. Nice, right? It’s very professional looking. Transform your consultation notes — professional summaries, action items, patient emails. Very clear, and MediNotes Pro is what it’s called. And here are those “HIPAA compliant” claims that you should take off if you’re going to take this anywhere. Then press Sign In.
+
+I’m going to log in as myself. Here we go — this is already authenticated. Continue using Clerk’s user authentication. I can look at my profile up here, go to Manage Account, and I can see under Billing that I’ve got my payment method set and my subscription is a premium subscription — $1,080 a year, and a bargain at that price.
+
+And in we go. Let’s go to App. Let’s get started. This is the professional-looking consultation notes application. The patient’s name — let’s add Donna. The date of visit — up comes this beautiful pop-up, a date picker. This would have been hard work in the old days, but now it’s just adding in a React component. We’ll pick today’s date.
+
+“Ed complained of a headache. I told him to take two Tylenol and come back in two days if it hasn’t gone away.” There we go — that’s our very casual doctor’s notes. And now we press the Generate Summary button, which turns light blue. It’s now making a POST API request to that API route, which is our FastAPI server. It’s passing in a JSON of this form, and FastAPI is bringing that in as pydantic.
+
+And before I can even finish this explainer, we get back the results — the summary for the doctor’s records: Editor: Donna. Chief Complaint: Headache. Assessment and plan documentation shows a headache without any explicit diagnosis or workup noted. Plan documented as analgesic management with acetaminophen, which is the proper name for Tylenol — Panadol for the Brits — two tablets now with instruction to return in two days if symptoms have not resolved. So, super professional medical terminology and next steps for the doctor.
+
+We’ve got information here. Here’s the draft of the email to go back to me:
+
+“Hi Ed, thank you for coming today about your headache. Here’s the plan. We discussed medication. Please take two Tylenol (acetaminophen) now, following directions on the package. If the headache does not improve in about two days, please contact the clinic or come back for a follow-up.”
+
+So anyway, with the details at the end, you can see it’s polished. It’s worked. It’s a nice healthcare app. We did what we intended, and it was so very easy. I hope you enjoyed this. I hope you have fun with it. And of course, remember — the main to-do for you is to consider this just your canvas on which you can build.
+
+It doesn’t need to just give this summary and an email — it could do all sorts of things. For people who want to really experiment with it, you could also, if you’ve taken my LLM Engineering course and you know about things like taking audio input, make this multimodal — so that it could listen in to the doctor’s visit or take a recording from it and then build the notes or the summary.
+
+For people that have done my course, you could have it so that it emails this to the practice, perhaps using SendGrid or Resend — it could email it automatically so that that email can be forwarded directly to the patient. All of those ideas would be cool, and you could have them be features that are only exposed in Clerk for people that are on a paid subscription tier.
+
+So I hope you enjoy that, and I will see you back for the wrap-up.
+
+# **U) Day 4 - Building a Production Healthcare AI SaaS with Streaming LLMs**
+
+Well, that's not bad for four days’ work. We've got quite a lot done. We started by building a front end using React, built with the Next.js application framework. We used the TypeScript flavor of it rather than the vanilla JavaScript, and we used the Pages Router rather than the App Router. We're rendering on the client side, not on the server side. For styling, we used Tailwind CSS, and it was great — so easy to work with.
+
+We also built a backend using FastAPI. Most recently, we used a Pydantic object as the argument to a FastAPI route, and that way we were able to make it so that when the client posts a JSON object, it automatically gets packaged into the right kind of object on the server side. It’s very easy to define APIs using FastAPI. We then deployed using Vercel, the AI cloud deployment platform that is also responsible for creating the Next.js framework. We've deployed on Vercel — first briefly to dev when we did vercel dev, where we just had a sort of front-end-only app. We also deployed to preview by doing vercel ., and then to production by doing vercel prod. That’s deployed on the internet, available to anyone over SSL. If you saw that, it was a proper secure website, and we did all of that with just a couple of commands.
+
+We used Clerk to authenticate users and to have different subscription plans, and we built a little healthcare app that could easily be extended into quite a powerful assistant for a medical office. That’s very much my ask for you — you should take this as a springboard. Add in functionality and try to make this into something you really feel could be monetized, something that a medical office might actually pay for. Then, for sure, you can use your Clerk functionality, promote it out there, and see if you can make some revenue from this. That’s the idea — showing you how easy it is to build an actual SaaS app that you could then charge for.
+
+And maybe I should mention, by the by, that at the same time as doing this, we also did actually call an LLM — there was some AI involved here. We called an LLM and streamed back results. There was AI behind the scenes. But the point I want to make is that the AI is a bit of a side note here. All of the learning — everything that you've learned this week about quickly deploying an app that you could monetize on the internet — has really been core platform engineering and DevOps-type work: configuration, deployment, and understanding all the nuts and bolts of having an app with a front end and a back end connected together. The LLM call on our server could have been anything — it could have been reading a flat file; it’s just the same. So while we are looking at AI-related concerns like the OpenAI API key and streaming back results, much of what we're learning is generally applicable to building apps. We're just doing it through the AI lens. I hope that makes sense.
+
+Okay, so that concludes Day Four of the healthcare SaaS app and brings us to Day Five. You may have noticed that Day Four has been somewhat shorter than an hour, whereas these sessions are often an hour long. I do need to prepare you that tomorrow — deploying to AWS — is going to be a different kind of deal. There’s going to be a lot of sweat tomorrow, so be ready for that. Make sure you get plenty of sleep and that you’re in a very patient mood, because using AWS for the first time involves a lot of gritting of teeth, so be prepared for that.
+
+The main bulk of this course is about deploying apps to major cloud providers, where they are built for massive scale in a production way. What we’ve done so far this week has been the rapid deployment to a platform called a PaaS platform — a Platform as a Service type of platform — where it’s incredibly quick and easy to get things done. I wanted to equip you so that you could start building SaaS apps and charging subscriptions for them, making money already. This ticks the boxes for the entrepreneur in you who wants to do this fast. But most of this course is going to be the heavy-lifting part — deploying apps that can scale in a big way, like apps running on AWS. That is what we’ll be turning to tomorrow.
+
+As we go through this, we’ll be taking the same app and deploying it into AWS. It will give you an opportunity to compare what it’s like to deploy quickly to a platform like Vercel, where we can get things up there fast, versus AWS, where we have so much flexibility, security, and monitoring — it’s industrial grade. So prepare yourself for industrial grade; prepare yourself for tomorrow. But for now, take a moment to revel in the success of being 20% complete with the course. Congratulations — and I will see you tomorrow.
 
