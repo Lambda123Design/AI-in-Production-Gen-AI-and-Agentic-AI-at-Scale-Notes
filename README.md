@@ -688,7 +688,35 @@ Next, create another budget using the “Monthly Cost Budget” template. Name i
 
 # **X) Day 5 - Setting Up Secure IAM Users for Production AI Deployments on AWS**
 
+This next part is extremely important and is all about IAM—Identity and Access Management. We will be using the root user we just set up, which for me is called Ed, to create a new user called AI Engineer. This user will have limited permissions and will be the identity we use throughout the course over the next few weeks.
 
+On the AWS console, you’ll see the console home on the right after logging in, and on the left, you can follow along with the Day Five guide from the production repository. We’re on step four: creating the IAM user for our daily work. You should never use your root account for daily tasks, as it has permissions to do anything, which is risky. Instead, we create a more limited user. Currently, I’m logged in as the root user (named Ed) and will create a new user.
+
+Start by using the search box in the console to find the IAM section. On the IAM dashboard, go to “Users” in the side navigation. You’ll notice I’ve already created a couple of users; you won’t have any yet. Press the orange “Create User” button and name it AI Engineer (or AI Engineer 2 if you already have one). Select “Access to console” and ensure it’s an IAM user. Choose “Custom Password” and enter a strong password. Uncheck “User must create a new password” since you are setting it now. Then press “Next” and “Create User.” I’ll cancel here since I’ve already created it.
+
+Rather than adding permissions directly to the AI Engineer user, which has limitations, we create a user group. User groups allow you to manage permissions for multiple users, even though we only have one right now. Go to “User Groups” and create a group called Broad AI Engineer Access. I already have one, so I’d add a “2,” but you should stick with the original name. Add the AI Engineer user to this group.
+
+Next, we attach permission policies to the user group. These policies define what AI Engineer is allowed to do. Add the following four policies:
+
+AWS App Runner Full Access
+
+Amazon EC2 Container Registry Full Access
+
+CloudWatch Logs Full Access
+
+IAM User Change Password
+
+You type the name in the search bar, check the box, and don’t press the yellow button yet. Once all four policies are selected, press “Create User Group.” I’ll cancel here since I’ve already done this. You can view your user group, see the associated users, and check the permissions tab to verify that these four policies are assigned. As the course progresses, you might add more policies, but these four are sufficient for now.
+
+It’s worth noting that granting full access for each of these services may be more than strictly necessary. AWS allows very fine-grained control over permissions, but for this course, assigning full access to specific services is sufficient. You can refine permissions further if needed for production environments.
+
+Now that the user has been set up, with a username, password, and permissions, we can log into AWS as the IAM user instead of the root. First, sign out from the root user. Then, on the AWS landing page, press “Sign In to Console” and choose “IAM User Sign In.” Enter your 12-digit AWS account ID (the one you saved earlier), your IAM username, and password, then press “Sign In.” You are now logged in as your IAM user.
+
+As an IAM user, you will notice access-denied messages in areas like cost and usage, because only the root user has access to manage budgets and view overall spending. You can see your IAM username and account ID at the top of the console.
+
+Another key point is the AWS region, displayed in the top-right. Different regions are essentially different installations of the cloud, with their own services. Your default region may differ from mine (US East 1). It’s important to spell the region correctly (e.g., us-east-1) to avoid errors, as typos can cause obscure issues.
+
+With this, you now have a functioning IAM user, with controlled permissions, logged in to AWS. You are ready to begin using AWS safely without relying on the root account for day-to-day tasks. Congratulations—you’ve successfully set up and logged in as your IAM user!
 
 # **Y) Day 5 - Containerizing AI Apps with Docker for Cloud Deployment**
 
