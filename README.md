@@ -47,6 +47,24 @@ This Repository contains my Udemy course notes of "AI in Production: Gen AI and 
 
 **U) Day 4 - Building a Production Healthcare AI SaaS with Streaming LLMs**
 
+**V) Day 5 - AWS Setup and IAM for Production AI: Your First Cloud Deployment**
+
+**W) Day 5 - Setting Up AWS Cost Monitoring for Production AI Deployments**
+
+**X) Day 5 - Setting Up Secure IAM Users for Production AI Deployments on AWS**
+
+**Y) Day 5 - Containerizing AI Apps with Docker for Cloud Deployment**
+
+**Z) Day 5 - Migrating Your AI App from Vercel to AWS for Production Scale**
+
+**AA) Day 5 - Containerizing Your AI App: Docker Images for Production Deployment**
+
+**AB) Day 5 - Deploying Dockerized AI Apps to AWS with ECR and App Runner**
+
+**AC) Day 5 - Deploying Your AI App Live on AWS App Runner with Auto-Scaling**
+
+**AD) Day 5 - From Vercel to AWS: Deploying Production LLM Apps at Scale**
+
 
 # **A) Day 1 - Instant AI Deployment: Your First Production App on Vercel in Minutes**
 
@@ -634,3 +652,52 @@ The main bulk of this course is about deploying apps to major cloud providers, w
 
 As we go through this, we’ll be taking the same app and deploying it into AWS. It will give you an opportunity to compare what it’s like to deploy quickly to a platform like Vercel, where we can get things up there fast, versus AWS, where we have so much flexibility, security, and monitoring — it’s industrial grade. So prepare yourself for industrial grade; prepare yourself for tomorrow. But for now, take a moment to revel in the success of being 20% complete with the course. Congratulations — and I will see you tomorrow.
 
+# **V) Day 5 - AWS Setup and IAM for Production AI: Your First Cloud Deployment**
+
+So with any luck, you are now mentally prepared for day five. It's a big day. It's a day that requires, as I say, some grit. But I happen to find using AWS and deploying to these major cloud providers to be very satisfying as well. It's a big deal and it's exciting to be deploying on something that can take such massive scale and be close to the kind of bare metal of a cloud deployment. So it can be enjoyable. And, as I've warned you a million times, it can also be a bit frustrating. So here we are. We're coming to the conclusion of the first week of the SaaS Gen AI product. We're now going to go to production on AWS.
+
+I do want to make the point that today is going to be about a preview of AWS. Next week is going to be the full AWS week, when we will really go deep on many components. We're not going to cover every component today, but many of the core components of AWS. Think of it more as a teaser. Today is a teaser of what's to come. You don’t need to pick up everything—you just need to get a flavor for it.
+
+One of the things that one gets very used to with AWS is what's known as IAM—Identity and Access Management. It's something that's quite grueling with AWS in particular, more so than other providers like GCP (Google Cloud Platform) and Azure from Microsoft. AWS, Amazon Web Services, has a very granular, very powerful system for managing who can access what on the AWS platform. It's quite a headache the first time you get to use it, but it is one of the core strengths of AWS. So, it's a mixed blessing. Generally speaking, I think it is a net positive, but it's important to understand it.
+
+IAM is very granular, and while it’s tiresome when you first use it, there is a good reason behind it. It's a great and important commercial skill to pick up. One of the reasons we look at AWS is to give you the ability to build software that scales in a big way and also to prepare you for industry, so that you have the kind of skill set you might expect to see in a job description. Being slick with AWS permissions is a big skill.
+
+Here’s how it works. We start by setting up a new AWS account, assuming you don’t already have one, and you get a root user. The root user is the all-powerful user that can do anything, and as a result, the root user should, in practice, do almost nothing. You want to almost never log in as the all-powerful root user. The only two things that we ever use the root user for are assigning permissions (so that we can set up other accounts with more limited permissions) and budgeting, to ensure we are aware of spending and have controls around it.
+
+Next, we create an IAM user, which is a user with more restricted permissions. In an ideal production setting, you’d create many IAM users with different roles. You might have different users for different environments or projects, each with access to specific resources. For this course, we won’t be that finicky. We'll create one user called AI Engineer, which will be our workhorse for the rest of the course. This user will have permissions to do all the things we need during the course. However, you’ll also be equipped to give more fine-grained permissions yourself for production or commercial projects.
+
+Now, we move straight into some lab work. We’ll set up an AWS account and some IAM configurations. We'll start by signing up for a new AWS account, if you don’t already have one. Go to AWS Amazon.com, click to create an AWS account, enter your email, choose a password, and select a personal account type. You will need to enter payment information—AWS requires a credit card—but we’ll discuss managing costs in a moment. Choose basic support (free). Once this is done, you will have an AWS root account, which has all the powers in the world but is dangerous if used carelessly.
+
+We'll then sign in to AWS with the root user. Because we’ve set up multi-factor authentication (MFA), you’ll be prompted for a code from your authenticator app. Once signed in, you’ll see your account ID, which is a 12-digit number uniquely identifying your AWS instance. Keep this number handy. Next, go to security credentials to set up MFA for the root account. This ensures the account is very secure and only accessible by you. While here, you’ll notice Amazon Resource Names (ARNs)—unique identifiers for AWS objects—you’ll see these repeatedly over the course of your work with AWS.
+
+With MFA set up, sign out and sign back in to ensure everything works correctly. By now, you have an AWS root account that is secure, IAM concepts in place, and a preview understanding of how AWS allows for granular permission management. In the upcoming days, we’ll explore AWS in depth, covering Docker, AWS fundamentals, App Runner, and budget protection, giving you the professional cloud deployment skills necessary for production-level SaaS AI products.
+
+# **W) Day 5 - Setting Up AWS Cost Monitoring for Production AI Deployments**
+
+I want to say a few words about API costs in AWS before we go and set up some alerts. I'm conscious that I have already talked about this before, so this is just a refresher. API costs are your responsibility—you need to be aware of, monitor, and understand them at every step of our journey together. AWS offers a number of promotions for new sign-ups, depending on your region, student status, or other eligibility factors. One common offer is three months of free credits. However, some AWS activities still incur costs. For example, registering your own domain name requires a payment to a domain registrar, depending on the domain you choose.
+
+For this first week’s project, the estimated cost is between $1 and $5. If you leave it running for the entire month, that’s the potential cost, but if you run it just for a couple of days and then shut it down, the cost should be minimal. It’s incumbent on you to monitor this. API costs should always be your choice throughout the course. While platforms like Vercel can be hobbyist-friendly, AWS is industrial-strength and used by major corporations. Understanding how to manage and monitor costs is part of the professional skill set expected by many employers, making this an important aspect of your learning.
+
+We’re now going to set up alerts, which will allow us to monitor spending and understand what’s going on. AWS and other platforms provide granular alerting functionality, but there is no hard cap. That is, there is no built-in way to automatically shut down services once a certain spend threshold is reached. Their rationale is that AWS serves enterprise clients, and automatically cutting off services due to a billing issue could disrupt major operations like Netflix, which would be unacceptable. While it might seem strange that there’s no opt-in cap feature, it’s likely technically complex to implement. Nonetheless, you must understand this limitation, set up alerts, and regularly monitor your costs. Unlike OpenAI, where a $5 upfront cap limits risk, AWS theoretically allows unlimited liability if you inadvertently create massive infrastructure. Therefore, keeping track of costs is serious business and entirely your responsibility.
+
+Now, let’s return to the AWS console. When you log in at AWS Amazon.com as your root user, you can see your account ID at the top. This identifies the account you are logged in as. Next, use the search box in the top-left corner to navigate AWS services—it’s your go-to tool and you’ll use it repeatedly. Type in “billing” and select “Billing and Cost Management.” This page shows your costs up to the current moment. You might notice high costs in some of my accounts because I experimented with Amazon OpenSearch Service, which was expensive, but your spending should be much lower. Regardless, check this page regularly to monitor your own costs.
+
+On the left-hand menu, scroll down to “Budgets” under “Budgets and Planning.” This is where we will create alerts. Initially, you won’t see any budgets. Click the yellow “Create Budget” button. Start by selecting a user template and creating a zero-spend budget. This means you’ll be notified as soon as any spending above $0.01 occurs. Name it “Zero Spend” and enter your email address carefully, as this is your safety net. Press “Create Budget” and it will be set up.
+
+Next, create another budget using the “Monthly Cost Budget” template. Name it “Monthly Check” and set the amount you are comfortable spending this month—$5, $1, or any amount you prefer. Enter your email address. AWS will notify you at three points: when actual spending reaches 85% of your budget, when it reaches 100%, and if the forecast predicts you will exceed your budget. Press “Create Budget” to finalize this alert. You can create additional budgets if needed, but having the zero-spend check is particularly useful to ensure notifications are working. Until you receive these alerts and verify them, make sure to regularly revisit the Billing and Cost Management section to stay on top of your spending.
+
+# **X) Day 5 - Setting Up Secure IAM Users for Production AI Deployments on AWS**
+
+
+
+# **Y) Day 5 - Containerizing AI Apps with Docker for Cloud Deployment**
+
+# **Z) Day 5 - Migrating Your AI App from Vercel to AWS for Production Scale**
+
+# **AA) Day 5 - Containerizing Your AI App: Docker Images for Production Deployment**
+
+# **AB) Day 5 - Deploying Dockerized AI Apps to AWS with ECR and App Runner**
+
+# **AC) Day 5 - Deploying Your AI App Live on AWS App Runner with Auto-Scaling**
+
+# **AD) Day 5 - From Vercel to AWS: Deploying Production LLM Apps at Scale**
