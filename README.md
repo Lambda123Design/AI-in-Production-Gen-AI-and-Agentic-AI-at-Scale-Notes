@@ -65,6 +65,22 @@ This Repository contains my Udemy course notes of "AI in Production: Gen AI and 
 
 **AD) Day 5 - From Vercel to AWS: Deploying Production LLM Apps at Scale**
 
+**II) Week 2**
+
+**A) Day 1 - AWS Foundations for Production AI: From Console to Infrastructure**
+
+**B) Day 1 - Cloud Deployment Architectures for Production AI Applications**
+
+**C) Day 1 - AWS Cloud Components for Production AI: S3, Lambda, and Bedrock**
+
+**D) Day 1 - Building Your Digital Twin: AWS Lambda + Bedrock Architecture Setup**
+
+**E) Day 1 - Building Your AI Digital Twin: Production Setup with NextJS App Router**
+
+**F) Day 1 - Building Your First Full-Stack AI App with FastAPI and React**
+
+**G) Day 1 - Building Conversational Memory for Production AI Chat Applications**
+
 
 # **A) Day 1 - Instant AI Deployment: Your First Production App on Vercel in Minutes**
 
@@ -837,3 +853,87 @@ Wouldn’t it be amazing if you turned this into a proper SaaS product? Reach ou
 And with that, we conclude a massive day five. I warned you after day four that day five would be intense. Your brain might be fried, but you’ve learned an incredible amount. This concludes week one. We built a SaaS product, deployed it to production, and experienced both the ease of Vercel and the complexity of AWS. We got it live, scalable, and robust — an industrial-strength deployment on AWS. You should be proud of your progress. You’re now 25% of the way to becoming an expert in production deployment.
 
 Next week, in week two, we’ll dive even deeper into AWS. You’ve dipped your toe into the AWS waters; next week, we’ll take the big plunge. Be ready for it. I’m really excited, and I’ll see you in week two.
+
+# **II) Week 2**
+
+# **A) Day 1 - AWS Foundations for Production AI: From Console to Infrastructure**
+
+Well, do you have your sleeves rolled up? I hope you have your sleeves rolled up. I’m wearing a polo shirt, so my sleeves are naturally rolled up, but I hope you’ve got your sleeves firmly rolled up. We’ve got a huge week ahead—absolutely gigantic. I’ve got so much to show you, and there’s no time to waste. Let’s get straight into it. This week is all about AWS, and I can tell you it’s going to be a bit gruelling, but overall it’s going to be extremely fun. We have a lot to build, and by the end of the week, you’re going to be like a pro at AWS. I wouldn’t say you’re necessarily an expert yet—we’ll wait until the end of the full four weeks before we reach that point—but you’re going to be a pro, you’re going to know this stuff, and it’s going to be great.
+
+What you see here is a preview of everything I have in store for you this week, including building a product using Bedrock, Terraform, GitHub Actions, and so much more. But first, we need to look back at what happened last week and the new skills that you’ve acquired as a result. We built a front-end app—it was a React app using the Next.js application framework, specifically the TypeScript variant. We used the pages router, though this week we’re going to use the app router, and we used Tailwind for styling.
+
+We also built a backend app using the fabulous FastAPI. We used Clerk for user authentication and for building subscription plans that could be hooked up to Stripe. We are not going to be using that this week, but it might make a comeback in the future. While building this, we packaged the app into a Docker container. For those new to Docker, we covered some basics and tested it locally, and it worked—the front end and back end were running in one container. Then, we deployed that container to the cloud using AWS App Runner. After how easy it was to deploy with Clerk, going through all of these steps was a bit of a sweat—but this is core AWS learning.
+
+At the same time, we called an LLM and streamed back results. While it may have felt like 80% of what we were doing was core platform engineering work, there was an AI angle too. I gave you an assignment to beef up the app with more functionality and capabilities—something that could actually be commercially useful in a medical practice. Hopefully, you did that. Maybe you shared a link to it, did a PR for community contributions, or posted about it on LinkedIn. If you tagged me, I would have checked it out and amplified your success.
+
+Before doing anything else, we took a moment to go back into AWS as the root user and check our costs, ensuring there were no surprises. Signing in as root, we went to Billing and Cost Management. Ideally, you should have spent very little or nothing at this point, thanks to the free introductory plan. I personally spent $105, which was mostly due to preparing for this course and exploring cost-efficient ways to use AWS services. After checking costs, the next step was to ensure that the various services we built were no longer running.
+
+We started by checking AWS App Runner, which we used for deployment last time. Some of my services were still running—ignore any unrelated apps. For the consultation services, we deleted them by selecting the service, going to Actions, and pressing Delete, confirming the deletion. Of course, if you want to keep a service running because it’s valuable, you can, but generally, it’s best to delete unused services to keep things clean. Next, we checked ECR (Elastic Container Registry) for any Docker images that might incur minimal costs. Again, selecting and deleting these ensures a clean AWS environment. Later this week, we’ll explore a way to see all resources in your AWS account to confirm exactly what you’re paying for.
+
+Now, let’s take a moment to be self-congratulatory. We’re 25% of the way through the course. Think about the skills you’ve picked up so far. As an entrepreneur, you can now deploy an AI web app using Vercel with authentication and subscriptions. You know how to build your own app and deploy it, front end and back end included—a big milestone. For enterprise learners, you now have foundational AWS knowledge, understanding root and IAM users, permissions, containers using AWS App Runner, and ECR. You’ve also become familiar with the AWS console, navigating accounts, IDs, and cost numbers.
+
+This week, we have an enormous amount to cover. We’ll be building and deploying an AI app on AWS, working with Lambda, Bedrock, S3, API Gateway, CloudFront, Route 53, and more. You’ll be setting up resources both through the AWS console and using AWS commands. This process can be laborious, but it’s crucial to understand the AWS building blocks before using automated tools like Terraform. Terraform allows us to define infrastructure as code, making deployment easier and repeatable. AWS also has its proprietary version called CDK, but we’ll focus on Terraform because it’s widely used across industries and works across AWS, GCP, and Azure. Everything covered can be adapted to CDK if preferred, but Terraform is highly recommended.
+
+We’ll also use GitHub Actions for CI/CD (continuous integration and deployment), which will make deploying apps much smoother. This knowledge is core expertise for enterprise roles and startup environments alike. For entrepreneurs, Vercel may seem sufficient for early-stage deployment, and it might be—especially for initial product launches. But learning AWS and understanding scalable cloud deployments is essential. Vercel abstracts a lot of this for you, but knowing the underlying frameworks positions you for future growth. Eventually, as your app scales, you may outgrow Vercel and need to deploy properly using AWS, GCP, or Azure. Understanding cloud architecture, deployment pros and cons, and when to scale is vital. Entrepreneurs and enterprise learners alike will find this knowledge equally valuable, whether actively deploying or simply observing.
+
+# **B) Day 1 - Cloud Deployment Architectures for Production AI Applications**
+
+And now, perhaps for the single most important topic of the entire course—cloud deployment architecture—I’m going to be talking for a bit. There’s going to be some theory today and some lab work, with a bigger lab scheduled for tomorrow. There are a number of different ways you can deploy software to the cloud, and it can be ambiguous and confusing. People often use terms like PaaS in different situations to mean different things. I’ll explain the most common and typical usage, but be aware that some people may use these terms differently, so you might need to ask pointed questions to fully understand what someone means.
+
+First and foremost, the simplest way to deploy to the cloud, and the way it all began, is what some people call a traditional cloud server, also sometimes known as IaaS—Infrastructure as a Service. In this model, you simply rent a computer in the cloud. You have access to a server, and while you’re renting it, it’s yours to manage. You have to set up everything yourself: choose the operating system, install patches, set up software, configure it, and run your programs. Back in the day, this was how all cloud deployments were done. You’d get a bunch of compute servers, set them up, install a database on one, an app server on another, and all these servers would run remotely in the cloud, on AWS or another provider. That’s where cloud deployment began.
+
+Next up is Platform as a Service, or PaaS. Here, you write the code for your application—your business logic and functionality—and everything else is handled by a platform that takes care of putting your app online. This model was popularized by Heroku, which was one of the first to bring this approach to the mainstream. Today, it’s very common, and you’re most familiar with it through Vercel. Last time, we wrote a bit of code and a Vercel JSON file, and the platform handled the rest, publishing our app online with a URL. Compared with the traditional approach, this was pretty magical.
+
+Another model you’ve had experience with is Container as a Service, sometimes called CaaS. In this approach, you package your app into a Docker image—a process called containerization—and then the service handles deployment. We did this with AWS App Runner. While some people use CaaS and PaaS interchangeably in different contexts, this is the most common understanding.
+
+Next is container orchestration, which is a more advanced, professional approach. Sometimes people confuse CaaS with container orchestration, but container orchestration typically refers to managing many containers that need to interact with each other. You need to manage messaging between containers, scaling, monitoring, restarting, and coordinating the entire system. This usually involves using a tool like Kubernetes, which is extremely popular for running large-scale containerized applications in the cloud. This is the most advanced approach and is used primarily in large-scale companies. We won’t cover Kubernetes in this course, though it can be used even at smaller startups, including my own.
+
+Last but certainly not least is serverless architecture, or serverless functions, sometimes called Function as a Service (FaaS). This is currently very popular and involves a granular approach where you write individual functions—such as an API route or a specific FastAPI endpoint—that are uploaded to a platform and executed on demand. When a request comes in, a server is spun up to run that function and then shut down afterward. This can happen in parallel, scaling dynamically based on demand. You pay only for the CPU used while the function runs, making it highly flexible in terms of pricing and scalability. Serverless architecture is particularly attractive for companies that want to start small and grow fast. In this course, we’ll focus heavily on serverless functions along with containers as a service.
+
+To summarize, these are the five main cloud deployment archetypes you’re likely to encounter: traditional cloud servers, PaaS, CaaS, container orchestration, and serverless architecture. To layer this with AWS components, the typical services are as follows: for traditional cloud servers, it’s EC2; for PaaS, AWS offers Beanstalk (though you also know Vercel, which isn’t an AWS product); for CaaS, we used AWS App Runner; for container orchestration, AWS provides ECS and EKS—the Kubernetes version; and for serverless functions, the hot AWS product is Lambda. You don’t need to memorize these yet—we’ll cover them in more detail later—but by the end of the course, these names will become second nature.
+
+(i) Traditional Cloud Servers (IaaS – EC2)
+
+a) You rent a virtual server in the cloud.
+
+b) Responsible for installing OS, software, patches, and configuring everything.
+
+c) Full control over the server.
+
+(ii) Platform as a Service (PaaS – Beanstalk / Vercel)
+
+a) You write your application code; the platform handles deployment, scaling, and infrastructure.
+
+b) Simplifies going live without managing servers manually.
+
+(iii) Container as a Service (CaaS – App Runner)
+
+a) Package your app into a container (Docker image).
+
+b) The service deploys and runs the container on demand.
+
+(iv) Container Orchestration (ECS / EKS)
+
+a) Manages multiple containers that interact with each other.
+
+b) Handles scaling, monitoring, restarting, and coordination of containers.
+
+c) Typically used for large-scale applications.
+
+(v) Serverless Functions (Lambda)
+
+a) You write individual functions that run on demand.
+
+b) Automatically scales with requests; you pay only for the execution time.
+
+c) No servers to manage—highly flexible and cost-efficient.
+
+# **C) Day 1 - AWS Cloud Components for Production AI: S3, Lambda, and Bedrock**
+
+# **D) Day 1 - Building Your Digital Twin: AWS Lambda + Bedrock Architecture Setup**
+
+# **E) Day 1 - Building Your AI Digital Twin: Production Setup with NextJS App Router**
+
+# **F) Day 1 - Building Your First Full-Stack AI App with FastAPI and React**
+
+# **G) Day 1 - Building Conversational Memory for Production AI Chat Applications**
