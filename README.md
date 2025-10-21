@@ -996,4 +996,124 @@ With that, your environment setup for the twin project is complete. You now have
 
 # **F) Day 1 - Building Your First Full-Stack AI App with FastAPI and React**
 
+Okay, now it’s time to write some code — or copy and paste some code. First up, we’re going to make a file called me.txt, which is going to be a little description of who you are. This file should be created in the backend directory as a new file named me.txt. You should replace the contents with your own details. Don’t spend too much time on this, because we’re going to do it differently tomorrow. Just make this obviously represent you — your name, your website, your background, and so on. For example, Ed’s version says he’s Ed Donner, and his goal is to answer questions acting as Ed to the best of his knowledge. He describes himself as an AI engineer, a leader, and an AI speaker. That’s it — just two or three sentences to describe yourself. You can do that right now, but don’t fumble with it while watching the video.
+
+Alright, now back we go. That was the me.txt file in the backend. Now, step four: create a FastAPI server, but there’s going to be no memory yet. So, here we go — we’re going to take all of this code (the instructor shows it on screen). Copy this code and paste it into a new file. We are going to put this code into a file called server.py, again inside the backend directory. Create a new file server.py in backend, and paste the code there.
+
+Let’s take a quick look at it. It’s a FastAPI server. Don’t worry about any linting yellow squigglies you might see — that’s just because your environment isn’t fully recognized yet, so it shows some warnings. It doesn’t matter. The server code loads environment variables using load_env (if you’re not familiar with that, you can Google it to learn more). It starts the FastAPI server just as before.
+
+Then there’s some stuff related to “cause business” (the instructor mentions this briefly), which you can look up if you want to. It just sets things up so that our frontend knows that everything is working and can talk to this backend. After that, we create an OpenAI Python client library — you could replace this with your own API if you’re using a different provider instead of OpenAI.
+
+There’s also a function load_personality(), which simply opens the me.txt file we created earlier and returns its contents. This gets stored in a global variable called personality. Then we define two Pydantic models — ChatRequest and ChatResponse — that describe the data structure of messages coming in and going out.
+
+We have a few routes:
+
+“/api” → returns a message like “AI digital twin.”
+
+“/health” → returns a JSON response {status: "healthy"} so that we know the backend is running fine (just like we did with App Runner earlier).
+
+“/chat” → this is the important one, where it will respond to a user’s message.
+
+The chat endpoint accepts a ChatRequest (defined with Pydantic), processes it, and returns a ChatResponse. Inside this route, we collect the messages, call client.chat.create() — a very well-known API call — and then build a ChatResponse object from response.choices[0].message.content. That’s the same pattern we’ve used many times before to get a response from an LLM. Then, finally, it returns that ChatResponse object.
+
+At the bottom of the file, we have code that starts the backend server using Uvicorn. If you see a little white dot on your tab in Cursor, that just means you haven’t saved the file yet — so make sure to hit Save. And that’s it — you’ve just built your server.py!
+
+Now back to the instructions. Next, we’re going to create the frontend. We’ll start by creating a component called twin.tsx. There’s quite a bit of code there — copy all of it. The frontend code is usually more verbose, but that’s fine.
+
+So, where does twin.tsx go exactly? Let’s check. It goes into a new folder called components, which you’ll create inside the frontend directory. So, in the frontend, create a folder called components, and inside that, create a new file called twin.tsx (TypeScript file). Paste in all the twin component code.
+
+The instructor mentions that the course isn’t focused on frontend development, so he won’t go line by line. But he does highlight one important part — the fetch line in the code. That’s the line where the frontend connects to the backend: it fetches data from localhost:8000/chat. Remember that port 8000 is where we ran Uvicorn earlier for our backend. So, this means the frontend connects locally to the backend to send chat messages.
+
+You’ll also notice a red squiggly line at the top of the file under “lucide-react.” That means there’s a missing dependency — something we need to install. Cursor even highlights it in red. To fix this, go back to your terminal.
+
+Open the frontend folder in your terminal. Now, run this command:
+
+npm install lucide-react
+
+
+This installs the lucide-react component that’s being imported in the twin.tsx file. It’s the frontend equivalent of doing a pip install in Python. After a few seconds, the installation completes. Once that’s done, the red squiggly line disappears, and everything looks good.
+
+Now, we need to finish off the actual files inside the /app folder so that we can run our frontend. First, within app, create a new file called page.tsx. Files inside the app folder are what get served when someone goes to your root URL — basically, the homepage. Create the new file or, if one already exists (there might be a default page.tsx), just overwrite it. Paste in the new code for page.tsx and save it.
+
+Then, we need to make a small fix to the PostCSS config in the frontend — just to ensure it uses the modern approach compatible with the latest Tailwind CSS. After that, we’ll update the global styles. Replace everything inside app/globals.css with the new code. Save it, and that’s done.
+
+Back to the instructions again — now it’s time to test everything.
+
+Open a terminal in Cursor. You’re probably inside the frontend directory by default, so go back up one level to the root (twin project folder), then navigate into backend. Once there, we’ll initialize a new Python project.
+
+Run this command:
+
+uv init --bare
+
+
+Be sure not to forget the --bare flag — it stops Uvicorn from creating unnecessary extra files that we don’t need. If you forget it, things might break later. After running it, you’ll see that it initializes a pyproject.toml file.
+
+Python 3.12 will be used (and installed automatically if you don’t already have it). Then run the equivalent of a pip install using Uvicorn’s modern syntax:
+
+uv add -r requirements.txt
+
+
+That’s just the modern equivalent of pip install -r requirements.txt. It installs all dependencies — and it’s really fast! Once that’s done, you can start your backend server using the command shown in the instructions. The app server will start running, and you’ll see it’s up and running successfully.
+
+Next, open another terminal (Ctrl + Shift + `). Now you’ll see two terminals side by side. In the new terminal, navigate to the frontend folder. Run this command to start your frontend:
+
+npm run dev
+
+
+Let’s see if it works the first time. Looks like it does — it’s working!
+
+Now open localhost:3000 in your browser. Drumroll... and there it is — the AI in Production page, showing “Deploy your digital twins to the cloud.” It looks great — very polished, kind of like a radio interface but even better.
+
+Type “Hi there” into the chat box. Let’s see if it connects to OpenAI. Drumroll... It responds:
+
+“Hello, I’m Ed Donner’s digital twin. How can I assist you today?”
+
+It works! Now type “Hi, my name’s Alex.” The model replies:
+
+“Hi Alex, it’s great to meet you. How can I assist you today?”
+
+Then try asking, “What’s my name?” — it says:
+
+“I’m sorry, but I don’t have access to that information.”
+
+And that’s exactly what we expect. This shows that everything’s set up correctly — the frontend and backend are communicating properly through localhost. The frontend is served on localhost:3000, and the backend is on localhost:8000. They’re talking to each other successfully.
+
+However, as you can see, there’s no memory yet — each call is completely stateless, meaning it can’t hold a conversation or remember context. And that’s what we’re going to fix next.
+
 # **G) Day 1 - Building Conversational Memory for Production AI Chat Applications**
+
+And it's time to add memory to our back end. This is a new version of server.py for you to take. Copy all of this and paste it in. And if you're thinking, “Why isn’t he coding all this? We want to be coding,” the answer is that this is a deployment course — production deployment. Look at my other ones for the coding. But I will talk it through, of course.
+
+Let's go over to the server in the backend. Select all of the server code, delete it fully, and replace it with this new improved version. What have we changed? Save that.
+
+So, we have a new function load_conversation which just loads in stuff from the disk — from /memory on the local drive — and save_conversation, which just saves something to the local drive.
+
+Okay. If we now look at the /chat route, this has been changed. It first looks for a session ID in the request object, or it just comes up with a new random one if it doesn’t exist. Then it loads any conversation that we’ve already saved with that session ID. It then builds the messages object — the list of dicts that gets sent to OpenAI. It starts with the system prompt — here we go with your personality — and then it iterates through the prior conversation and adds that into the messages. Finally, it adds in the user’s latest message at the end.
+
+We then call OpenAI. It’s calling GPT-4 mini. Let’s make that GPT-4.1 mini — slightly pricier, but really good. But you can leave it on 4.0 or make it 4.1 nano if you wish, which is super cheap. You could use GPT-5, but I find that GPT-5 is a bit slower, even when it’s on its fastest mode — the minimal mode — still a bit slower. So I prefer GPT-4 mini myself. But you should experiment.
+
+And we get back the response. We add that response into our conversation along with our current message, and we save that to disk. So that’s all saved, and we return the response. That’s all there is to it.
+
+Next up in the guide, it will tell us we need to stop and start our backend server and then give it a whirl. So we bring back up the terminal, go back to the backend, stop with Control +C, and start it again. That might not be necessary actually — it might auto-reload — you should see. But just in case, stop it and start it.
+
+Go back to our frontend server so that we can just click the link right here and bring back up the digital twin running in production and say:
+“Hi there.”
+“Hi, nice to meet you. My name’s Alex.”
+
+You may notice there’s this annoying thing — you have to click back in that field every time, which is irritating. And we will fix that later. Never fear. Let that irritate you, because it’s going to be satisfying when we fix it.
+
+“My name’s Alex.”
+“Great to meet you, Alex. How can I assist you?”
+“What’s my name again?”
+“What’s my name?”
+“You mentioned your name’s Alex. How can I help you today, Alex?”
+
+So that hopefully proves that it does manage to maintain the context of the conversation. It means that it’s working — it’s happening. And indeed, if we now go back to Cursor, if you open up, you see this memory folder we’ve got locally. If you open that up, you’ll see that there is a file in there — a file which has a long name which is a UUID — and it’s got within it the conversation that we’re having so far. It’s being saved to disk.
+
+We’ve built our simple memory implementation with a frontend and backend running locally on our computer. And you’ll see in that guide a few more things for you to think about and look at in terms of what we’ve built. But basically, we have spent today laying the foundation for what’s ahead.
+
+We’ve talked about AWS architecture. We’ve got a few acronyms and different styles — different archetypes of production architecture. And then we’ve gone to the digital twin, and we’ve built out a locally running app with a frontend — a Next.js App Router frontend — and a backend with FastAPI. We’ve pulled them together, brought them together in the browser, which is able to call the backend API and has the core stuff set up right.
+
+It’s always a headache, and it’s working nicely because it’s using memory. It’s storing a flat file locally. The server is keeping a history of each conversation in JSON files that it’s storing locally in a memory folder. And we are ready. We are poised to take all of this and deploy it all to AWS. And that’s what we’re going to do tomorrow, and it’s going to be great. I can’t wait.
+
+That brings us to this point — 30% complete — of your way through the journey to production expertise. But tomorrow’s going to be a big day, and I can’t wait.
