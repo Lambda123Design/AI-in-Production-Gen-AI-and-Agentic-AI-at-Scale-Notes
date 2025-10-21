@@ -720,12 +720,120 @@ With this, you now have a functioning IAM user, with controlled permissions, log
 
 # **Y) Day 5 - Containerizing AI Apps with Docker for Cloud Deployment**
 
+You’ve already mastered IAM quickly, and now it’s time to introduce something new: Docker. Many of you may already be familiar with Docker, but for some, this will be new. I won’t go deep into all the details, just enough to get the basic intuition. Docker allows you to run a computer within your computer—a box within a box.
+
+Previously, we had virtual machines, which emulated an entire operating system and isolated processes on your computer. These were heavy and resource-intensive. Docker achieves a similar outcome but is much more lightweight, sharing the same operating system instead of replicating it. Essentially, Docker provides an isolated environment that is portable and reproducible. Once you build a Docker container, it can run identically on many different machines.
+
+There are three key concepts in Docker: Dockerfile, image, and container.
+
+Dockerfile: A simple text file with instructions for installing and configuring your container. It acts as a recipe, defining step-by-step how to build the environment.
+
+Image: A snapshot or blueprint of a complete environment, created from a Dockerfile. Docker images can be built on top of existing images, layering changes incrementally.
+
+Container: A live instance of a Docker image. You can create multiple containers from the same image. Containers can be started, stopped, and managed independently.
+
+To summarize: Dockerfile → Image → Container. A Dockerfile creates an image, and images can spawn many containers.
+
+Next, we’ll look at three AWS services that you’ll use this week:
+
+AWS App Runner: The easiest way to deploy a Docker container to the cloud. You can test your container locally and then push it to AWS, where it runs as is.
+
+Amazon ECR (Elastic Container Registry): A storage location for Docker images, ready to be deployed.
+
+CloudWatch: A logging and monitoring service to track activity and logs across your AWS services. It is especially useful for observing agent behavior in a centralized place.
+
+You’ve also already seen IAM and cost & billing management, making a total of five AWS services introduced so far.
+
+Our next task is to take the healthcare app, package it into a Docker container, test it locally, and deploy it to AWS—all in one day.
+
+The first step is installing Docker Desktop. This allows you to package your application into a container, like a shipping container for software. Go to Docker.com, download the correct version for your OS (Mac or Windows), run the installer, and follow prompts. Windows users will also install WSL2, a small Linux subsystem, since Docker requires a shared OS. After installation, start Docker Desktop and, if necessary, restart your computer.
+
+To verify installation, open a terminal and run:
+
+docker --version
+
+This checks that Docker is installed. Next, test if it’s running with:
+
+docker run hello-world
+
+If successful, you’ll see a “Hello from Docker” message. This confirms that Docker pulled an image from Docker Hub, created a new container, and ran it. This output demonstrates the concepts of images and containers in action.
+
+There’s a lot more to Docker beyond this introduction, but for now, this is sufficient to start packaging applications, testing them locally, and deploying them to AWS. For deeper exploration, you can refer to Docker’s official documentation or ask your preferred AI assistant for guidance.
+
 # **Z) Day 5 - Migrating Your AI App from Vercel to AWS for Production Scale**
+
+On Day Five, Part Three, we focus on getting our SaaS application ready to deploy to AWS. If you like your current Vassal application, it’s a good idea to take a backup of your SaaS folder and save it somewhere else—perhaps call it SaaS_Vassal. This precaution is important because we haven’t pushed the project to GitHub, so it’s just a local directory. Making a copy ensures you have a safe version to revert to as we prepare the application for deployment, which may overwrite existing files. At this point, your project should include the following folders: pages, api, styles, and public.
+
+The first step is to convert the frontend into a static website. Previously, the frontend was rendered dynamically on demand. Now, we want to generate a static export so that the frontend consists purely of pre-built HTML, JavaScript, and stylesheets generated from the Next.js app. To do this, open the next.config.js file and add the necessary configuration to output a static site. This allows your frontend to be served as static files, which is essential for deployment to AWS. Once this configuration is added and saved, the frontend is ready for the next step.
+
+Next, we need to update the frontend API calls. Previously, the frontend posted requests to /api. Now, because everything will run on the same server, we need to modify these calls to /api/consultation. To implement this, open pages/product.tsx (or wherever the fetch call occurs), locate the line that calls /api, and update it to /api/consultation. This ensures that frontend requests correctly target the new backend endpoint. Save the changes after updating the fetch call.
+
+We now move on to creating a new backend file. The old index.py file will no longer be used, although you can keep it for reference. Create a new file called server.py in the api folder. This new backend file contains several key updates. First, it sets up a FastAPI app as before. It also includes CORS middleware, which ensures that only the correct frontend can call the backend, preventing unauthorized sites from making requests to your API. While CORS can be a deep topic, for now, we can use this as-is to prevent frontend errors. The AI-related routes remain unchanged, and the /api/consultation route is updated to reflect the new endpoint.
+
+In addition, a new health check route is added at /health, which returns a JSON object: {"status": "healthy"}. This is important because AWS will use this endpoint to verify that the service is running correctly. Another significant update is that the backend can now serve the static frontend site. When someone accesses the root URL (/), the server will return index.html from the static export of the frontend. This allows a single backend to handle API requests, health checks, and serve the complete frontend, consolidating everything into one deployable service.
+
+The next step is to create a .env file for secrets required during deployment. Start by copying the existing .env file from your project, which should already include the following keys: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, CLERK_API_URL, and OPENAI_API_KEY. For AWS deployment, you now need to add two additional keys: AWS_DEFAULT_REGION and AWS_ACCOUNT_ID. The default AWS region should be the one closest to you. Common choices include eu-west-1 (Ireland) for Europe, ap-south-1 (Mumbai) for Asia Pacific, and us-west-1 or us-west-2 for the US West coast. When you first log in to AWS, the console typically defaults to the nearest region, but you can verify it or choose a preferred one using the AWS regions page. The AWS_ACCOUNT_ID is the 12-digit number visible in the AWS console under your user details. Both of these values should be added to the .env file along with your other secrets.
+
+Once this .env file is properly configured, the application is fully prepared for deployment. The backend can serve both API requests and the frontend static site, includes a health check for AWS, and the frontend API calls are updated to match the new routes. With this setup complete, you are ready to move on to the next stage: packaging the application into a Docker container and deploying it to AWS.
 
 # **AA) Day 5 - Containerizing Your AI App: Docker Images for Production Deployment**
 
+Now comes the exciting part: creating our own Docker image, starting with the Dockerfile. I already have a Dockerfile prepared, so the first step is to copy this text and create a new file called Dockerfile in the project root. Paste the contents into this file. The Dockerfile is essentially a set of instructions describing how to build a Docker image. For those who have used Docker before, this will feel familiar, but for first-timers, it’s an introduction to the workflow. The Dockerfile we’re using actually creates two Docker images—one temporary and one final.
+
+The process begins with the temporary image. Using the FROM command, we start with a Node 22 Docker image pulled from Docker Hub. Several commands are then run, including setting environment variables and running npm run build. This command generates a static version of the frontend from our Next.js app, producing a set of HTML, JavaScript, and stylesheet files.
+
+Next, we create the main Docker image using a slim Python 3.12 image as a base. The image is adapted to our project by first installing all Python dependencies from requirements.txt using pip. Then, the backend file api/server.py is copied into the image. Additionally, the static frontend built from the temporary image is copied into the new image. A health check is included to regularly hit the /health endpoint, and the server is configured to run on port 8000. Finally, the Dockerfile specifies that the server should be started using Uvicorn with the host and port settings, completing the Dockerfile definition.
+
+After saving the Dockerfile, a best practice is to create a .dockerignore file. This file functions similarly to .gitignore by excluding unnecessary files from the Docker image build. Once created and saved, the .dockerignore file ensures that only relevant files are included in the image.
+
+The next step is to build the Docker image. Scripts are provided for Mac/Linux and Windows to load environment variables from the .env file into the terminal. Once the environment variables are set, the docker build command is run. This command reads the Dockerfile and builds the Docker image according to its instructions. Depending on your system, this may take a few minutes the first time, as Docker executes each step: installing Python packages, building the frontend, and copying files. Subsequent builds will be much faster due to Docker caching previous steps. During the build, you may see warnings regarding environment variables. These warnings, related to public publishable keys, can be safely ignored.
+
+At this point, we have successfully built a Docker image that packages both the backend and frontend of our application. As part of the process, a temporary container was also created and run to assist in building the final image. The build process may take 2–3 minutes initially, but rerunning it will be almost instant. Congratulations—you now have a Docker image that encapsulates your application.
+
+The final step is to run a Docker container from this image. Using the provided docker run command for Mac or Windows, we launch the container. This container starts the server using the image we just built and performs a health check to ensure it is running correctly. Once started, the frontend becomes accessible locally, displaying the user interface. The container recognizes previous login sessions, confirming that both the backend and frontend are functioning as expected inside the Docker container. This marks the successful creation and execution of your first Docker container.
+
 # **AB) Day 5 - Deploying Dockerized AI Apps to AWS with ECR and App Runner**
+
+All right. Now, Control + C out of this Docker process. It's time to deploy to AWS App Runner. First of all, we need to set up our Docker container in the Elastic Container Registry (ECR). A Docker image, which is the blueprint for containers, needs to go into the Elastic Container Registry. So first things first, we need to go back to the AWS console. Let's do that right away. Here we are. Go to the AWS console and sign in. Make sure that you're signed in as the AI Engineer user and not some other user. Then go to the Elastic Container Registry. I just typed ECR in the search bar, and it came up for us right here.
+
+Ignore the fact that I already have some things in here, including what we've got right now, because I may have done this before. We are now going to upload your container to the Elastic Container Registry. First, make sure you have the correct region selected — whatever region is closest to you. You can see different regions like the US East and West Coast, Mumbai, Singapore, Canada, and Europe. EU West 1 is very popular, and there is also SA East 1. Make sure this region matches what you have in your .env file. Then press Create repository. We are going to call this exactly consultation-app. It has to be exactly that because we will use it later. Everything else can be left as default. Press Create. I won’t press it because I already have one created. Once you’ve done this, you’re ready to continue to the next instructions.
+
+Next, we need to configure the AWS CLI, which is the command-line interface for interacting with AWS from a terminal. First, go back to the AWS console and navigate to the Security Credentials section to set up access. Sign in as the AI Engineer IAM user, click on your account name, and select Security Credentials. Scroll down to the Access Keys section and press Create Access Key. Select Command Line Interface. AWS recommends other options, but we have every reason to use CLI for Docker. Tick the box to acknowledge the recommendations, give it a description like Docker push access, and press Create access key. You’ll be able to download a CSV with your credentials. Take note of both the Access Key ID and the Secret Access Key. After that, click Done.
+
+Now it’s time to set up the AWS CLI. On Mac, you can install it using brew install aws-cli. For Windows, follow the instructions provided on the AWS link. Once installed, type aws configure. You might need to open a new terminal if you just installed the CLI. It will prompt you for your access key and secret access key. Paste both of them from the CSV you downloaded. For the default region, enter the region you selected earlier, and leave the output format as none. With that, the AWS CLI is set up, and you can now access AWS from your terminal. Congratulations!
+
+Next, we will push our Docker image to the consultation-app repository. Make sure your environment variables are loaded. On Mac, run the commands to load them again, and follow the Windows version if you're on Windows. The first step is to authenticate Docker to ECR. This uses your environment variables to log in. Once successful, it should say Login succeeded. Now, build the Docker image. You may wonder why we’re building it again. This is particularly important for Mac users with Apple Silicon (M1/M2 chips). The previously built Docker image is specific to Apple Silicon and may not work on AWS. So, we need to build it specifically for a Linux backend. The build process will create the front-end export in Next.js, generating optimized production files — raw HTML, JavaScript, and CSS — ready to be served. Once the build completes, we tag the Docker image as consultation-app:latest and then push it to ECR. After the push, it will be ready for deployment.
+
+Now it’s time to launch App Runner and deploy our service. We have the Docker image tested locally, and it’s now uploaded to the Elastic Container Registry. Go to the AWS console, search for App Runner, and click Create Service. Choose Container Registry, then Amazon ECR, and browse to select consultation-app:latest. For deployment settings, select Manual, and choose Create new service role. Click Next. The service name will be Consultation App Service. I’m calling mine Consultation App Service 2 because I already have a service running. For compute resources, select a small configuration: a quarter CPU and half a gigabyte of memory — lightweight but sufficient. Next, add the required environment variables: CLERK_SECRET_KEY, CLERK_URL, and OPENAI_API_KEY. Copy these from your .env file and add them as plain text variables. With that, our App Runner service is configured and ready to launch.
 
 # **AC) Day 5 - Deploying Your AI App Live on AWS App Runner with Auto-Scaling**
 
+Okay, so my secrets have now been saved. They’re just up there, off the top of the console. This is very important: where it says Port, you need to change it to 8000, because that is the port the app is listening on. Next is Auto Scaling. You need to create a new Auto Scaling Configuration (ASC). Give it a name — I’m going to call mine basic. Set how many requests can run concurrently at any one time — let’s say no more than ten. Set the minimum number of instances to one, and the maximum to one as well, so we will not have more than one running. This is where you could scale up if you were building a platform requiring high scalability. Once done, add this scaling configuration.
+
+Next, add Health Check information. I’ve already filled mine in, but you would need to select a protocol — choose HTTP — and give it a path, which in our case should be /health. Set a timeout of five seconds and an interval of 20 seconds. This means it will wait up to five seconds before deciding the service isn’t healthy, and it will perform the health check every 20 seconds. If five checks fail in a row, the service is considered unhealthy. If a couple of checks succeed, it is considered healthy. These health checks help ensure that your service is running correctly.
+
+Once that is configured, press Next. You get a chance to review everything one more time, including your secrets. I won’t show that here, but make sure everything looks correct. Confirm that the CPU is a quarter and the memory allocation is half a gigabyte, and make sure you’re comfortable with all the details. Once you’re ready, press the button to deploy your container to App Runner. This process will take a few minutes to run. Once you press it, you should see a screen similar to mine, though your service name will likely be Consultation App Service instead of Consultation App Service 2, because I already have a service running.
+
+As it deploys, you’ll notice AWS App Runner is taking the Docker image we built and tested locally, which we uploaded to Elastic Container Registry. It’s now creating a live App Runner service using that Docker image. On the App Runner screen, you’ll see an ARN (Amazon Resource Name) — every AWS resource has one. The ARN includes the service type (App Runner), the region, the account ID, and other relevant details. The Source section points to the container image in Elastic Container Registry, which is being used for this App Runner instance.
+
+Once the deployment finishes, your service will be running live on AWS. It will provide a domain with HTTPS access. This is the moment of truth — you can click on the domain to access the app on the internet. This confirms that the Docker container is deployed live on AWS using App Runner. You can sign in with your user ID. Once signed in, you can press Open Consultation Assistant, and the service will be fully functional.
+
+The app client is now calling the server running in AWS App Runner. The server, in turn, calls OpenAI, and the response is returned. In this demonstration, it generates a doctor’s summary, next steps for the doctor, and even drafts an email to the patient. Everything is fully whirring in the cloud, demonstrating a complete, authenticated, deployed application. It’s running in a Docker container on AWS, with App Runner handling scaling, health checks, and deployment. Congratulations — this is a live AWS deployment!
+
 # **AD) Day 5 - From Vercel to AWS: Deploying Production LLM Apps at Scale**
+
+Well, I imagine some of you are feeling a bit like a deer caught in headlights with everything that just happened. Don’t worry — go with it. This is about absorbing more information as we go. There is a lot to AWS, and I imagine you’ve seen the enormous contrast. It was so easy to deploy to Vercel and get something running; it almost felt too good to be true. Experiencing that was really cool. Then AWS feels like almost the opposite experience. Setting up a user ID, managing permissions, user policies, attaching policies, and handling user groups — it can feel overwhelming. There’s so much terminology: ECR, App Runner, CloudWatch, and more. Don’t let it become too much. We didn’t even look at CloudWatch yet, but we will. You could click around to see some of the logging available in CloudWatch, which is useful.
+
+Here’s a quick recap of what we did. We built a front end using React with the Next.js application framework. We used TypeScript rather than JavaScript, the pages router rather than the app router, and styled everything using Tailwind CSS. For the backend, we used FastAPI. Clark handled user authentication and subscription plans. We packaged everything into a Docker container using an approach where the front end is compiled into a static front end and served by the backend, all in one Docker container. We tested this locally, running both front end and back end together successfully.
+
+After that, we took the Docker image and pushed it to the Elastic Container Registry (ECR). From there, we deployed it to AWS App Runner. App Runner is AWS’s simple approach for deploying containers to the cloud — one of the easiest ways to go live on AWS. And we did it! Congratulations. It’s worth noting that an LLM was involved in the application — we called OpenAI and streamed results back. So, although much of this week felt like configuration in the AWS console, with permissions and clicking around, there was a fully functional AI backend at the end of it.
+
+If this feels like a lot, go back and review it. Explore the AWS console. A good practice is to log in as your root user and check costs in the Billing and Cost Management section. At this point, there should be no material costs, but it’s good practice to verify this.
+
+For your assignment, go back and enhance this app. Add more functionality, and deploy it to Vercel — which is very quick and easy. Then, take a deep breath and deploy it to AWS. Now that you’ve handled all the configuration, IAM setup, and permissions, the final steps of building the Docker container, pushing it to ECR, and deploying with App Runner are straightforward once you’ve done them a couple of times. Be sure to document your results in a repository and share them in community contributions so everyone can see your work and the different approaches you took to build this app.
+
+Wouldn’t it be amazing if you turned this into a proper SaaS product? Reach out to a few healthcare contacts or doctors’ offices and pitch your automated assistant to help make their practice more efficient. That would be really cool.
+
+And with that, we conclude a massive day five. I warned you after day four that day five would be intense. Your brain might be fried, but you’ve learned an incredible amount. This concludes week one. We built a SaaS product, deployed it to production, and experienced both the ease of Vercel and the complexity of AWS. We got it live, scalable, and robust — an industrial-strength deployment on AWS. You should be proud of your progress. You’re now 25% of the way to becoming an expert in production deployment.
+
+Next week, in week two, we’ll dive even deeper into AWS. You’ve dipped your toe into the AWS waters; next week, we’ll take the big plunge. Be ready for it. I’m really excited, and I’ll see you in week two.
