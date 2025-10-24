@@ -95,6 +95,14 @@ This Repository contains my Udemy course notes of "AI in Production: Gen AI and 
 
 **N) Day 2 - Testing Your Live AI Agent and Configuring CORS for Production**
 
+**O) Day 3 - Setting Up Amazon Bedrock for Production LLM Deployment on AWS**
+
+**P) Day 3 - Migrating from OpenAI to AWS Bedrock for Cost-Effective LLM Deployment**
+
+**Q) Day 3 - Deploying Bedrock LLMs to AWS Lambda and Testing Production APIs**
+
+**R) Day 3 - Monitoring Production AI with CloudWatch and Bedrock Metrics**
+
 
 # **A) Day 1 - Instant AI Deployment: Your First Production App on Vercel in Minutes**
 
@@ -1436,3 +1444,151 @@ Additionally, you can check the memory S3 bucket. This bucket stores the JSON ob
 At this point, the architecture is live and fully functional. Congratulations! You have successfully deployed a production-ready web application on AWS with a static front-end hosted via S3, globally distributed through CloudFront, and a back-end powered by Lambda and API Gateway. This marks a major milestone, demonstrating enterprise-grade deployment skills. Although it may feel overwhelming, it is completely normal, and with practice, this workflow will become second nature.
 
 This accomplishment represents approximately 35% progress toward building expertise in deploying AI applications to production. The next phase will focus on the AI side, including integrating Amazon Bedrock and calling large language models (LLMs) for more advanced functionality. For now, take a moment to celebrate this milestone: your digital twin is live on the internet, fully functional, and your AWS deployment pipeline is successfully in place.
+
+# **O) Day 3 - Setting Up Amazon Bedrock for Production LLM Deployment on AWS**
+
+And welcome back. Welcome to production deployment of Gen AI and AI. Week two, day three. And it’s a purple day, which means one thing—it means it’s AI time. This is about Amazon Bedrock today. It’s when we get back to talking about what it means to deploy AI applications, and we’re going to get almost immediately to the lab. But first, just a quick recap of the deployment architecture that we did last session yesterday.
+
+If this didn’t cause your mind to spin like crazy, we started by deploying a Lambda function. Remember, we wrote a script called deploy.py that packaged up our backend code into a zip file. And then we went into Lambda, we created a Lambda function, we uploaded the zip file. I uploaded the wrong one the first time, but we uploaded the right one—you uploaded the right zip file—well done! And you got that code, you set some environment variables, including the all-important CORS variable (which we had to come back to later). And that was the Lambda function up there.
+
+We then set up an S3 bucket. The S3 bucket had to be called something like twin-memory followed by your account ID, because these names had to be unique across everyone. We set that up, and then we went back into the Lambda function and updated the CORS variable—sorry, not the CORS, but the S3 variable (the memory variable)—so that it would point to that S3 bucket. And then we configured an API Gateway. Remember doing that? We set up a gateway, integrated it with that Lambda function, and set up the routes, including the /chat route, which was the POST route so that the frontend would be able to call into that API.
+
+And then we created a static website. We did that by calling npm run build and creating a static website in the out directory. We set up an S3 bucket for the frontend, and then we ran a script to upload that out directory into our frontend static site. We then tested it there and made sure that it worked—and it did! And that was surprising and amazing. Then we set up a CloudFront distribution. This takes that static site and makes it available to the world through CloudFront. We tested it by accessing the frontend through the CloudFront distribution and confirmed it served up the page correctly. Then we made sure we updated the CORS variable in Lambda so that it knew to expect that CloudFront distribution page, ensuring that when we made the API call, it all worked seamlessly.
+
+And yeah—it felt like quite a palaver. And you can compare that to what it was like building an application in Vercel. You can be forgiven for thinking, “Maybe I should just stick with Vercel.” And I hear you—Vercel is amazing. Similar products like that—Platform-as-a-Service (PaaS)—are so easy to use. But there comes a point, as you move through various stages of maturity with your app, when you’re ready for the big AWS deployment. And that’s what we’ve done successfully—this is industrial strength.
+
+But wait—there’s more! We want to add in AI. And that means rather than just writing Lambda code that calls OpenAI, we want to take advantage of AWS Bedrock. And that is what we’re going to do today. And with that intro, it’s time for our lab. So here we are in Cursor again, in the twin project that you created just a couple of days ago. Here it is—it has a Week 2 folder, and that Week 2 folder we copied across from the production repo. Inside it, you’ll see folders for the days of the week. We’ll start with Day 3 right here. The introduction will tell you that today is all about Bedrock.
+
+Bedrock, mostly, is like a wrapper around calling LLMs that Amazon takes care of for you—handling credentials and similar details. There’s a lot more being added to Bedrock, including its agent platform. So Bedrock is a bit of a catch-all for a whole suite of AI products within Amazon. There are two main services: Bedrock and SageMaker (which we’ll look at next week). But for now, we’re going to use the LLM parts of Bedrock, specifically Amazon’s Nova models. Through Bedrock, you can access a huge range of models, but we’ll stick with Amazon’s own Nova models and give them a whirl.
+
+There are three sizes: Micro, Lite, and Pro—and even Pro is pretty cheap. Pro, at the moment, is slightly cheaper than the Claude Haiku model (the cheapest version of Anthropic’s models). And that’s the most expensive of Amazon’s Nova range—so Nova Micro is really, really cheap, as I’ll show you. We’ll be looking at all of those. But before we do any of that—of course—it’s IAM permissions time! You always have to begin with permissions.
+
+So we’re going to sign in as the root user, as we always do, and we’re going to find our user group “twin-access” and add two permissions: Amazon Bedrock Full Access and CloudWatch Full Access (for access to logs). I teased the fact that we’d look at logs a couple of days ago, and we didn’t—but we will today. We’ll attach those policies now.
+
+Here we are in the AWS Console. I’m signed in as the root user—you can see that up there—and we’ll go straight to IAM by clicking on “Recently visited IAM.” Go over to “User Groups” and then to “twin-access.” Click on the Permissions tab—this is where we can set more permissions. I already have CloudWatch Full Access on here (before, I incorrectly thought that CloudFront Full Access was the one we needed—but no, this is CloudWatch). So I’m going to add permissions—“Attach policies.” Now, type “bedrock” in the search bar—select “Amazon Bedrock Full Access.” Then type “cloudwatch” to find “Amazon CloudWatch Full Access.” Tick both boxes and click “Attach policies.”
+
+Back here, we should now see “CloudWatch Full Access” along with “Amazon Bedrock Full Access.” Perfect—we now have permissions for both, which is exactly what we need. Now, we need to request permission to access the specific models in Bedrock that we want to use. To do that, we need to go in as our IAM user. So let’s do that now.
+
+Back to the AWS Console—look at that, isn’t that great? Go to aws.amazon.com/console and sign in again. I’m already logged in—you might have to log in yourself—but double-check. Look up there—does it say “engineer”? It does. Okay, now type “bedrock” into the search bar—select “Amazon Bedrock.” Welcome to our first big AI side of Amazon! Lots of stuff to see here—look at all these AI menus.
+
+The specific thing we want is Model Access—click on that in the left-hand panel. This shows you all the different models that you can access through Bedrock—lots of them! Plenty of open-source models, plus Claude and others. Here are the Nova models that we want to access, along with a bunch of others. You can read about any model by clicking on its link.
+
+You may notice that one of the models offered through AWS is the famous “OS model” from OpenAI—the open-source OpenAI model. But you can’t reach OpenAI’s frontier models through AWS; Microsoft has the partnership with OpenAI. AWS’s partnership is with Anthropic. So that’s what you get here—you can use Anthropic’s Claude models and open-source models, but the open-source ones aren’t available in us-east-1; they’re available in us-west-2. Maybe by now they’re available everywhere, but as of now, we’ll stick with Nova models, which are available in all regions.
+
+I’ve already been granted access because I requested it earlier. You may not have yet—in which case, the first thing you need to do is request access, which you do by pressing the “Modify model access” button. When you get to the Nova models, you’ll be able to check those three boxes (I can’t because I already have access). Scroll to the bottom and press “Next.” Then you’ll likely see a message confirming nothing is pending, and you can Submit request to access those models. Because they’re Amazon’s own models, access is usually granted instantly. For me, it was immediate—once the page refreshed, I had access. For you, it might take a few minutes—maybe go grab a coffee. It can take longer for Anthropic models, but not for Nova.
+
+If you’re interested in trying out some Anthropic models too, you can request access for them—it’ll just take a little longer (still only a few minutes). But we won’t be using those this week. Okay, so once you’ve done that—clicked Submit and refreshed the page—wait a minute or two if needed. You should then see Access Granted beside those three Nova models.
+
+And congrats—you’re now ready to use Amazon Bedrock and the Nova models!
+
+# **P) Day 3 - Migrating from OpenAI to AWS Bedrock for Cost-Effective LLM Deployment**
+
+Next, let’s talk about model pricing, because costs are always important when deploying large language models. The Amazon Nova models are actually very affordable. There isn’t any kind of upfront payment or subscription requirement like the one many people complain about with OpenAI. Instead, everything simply gets billed directly to your Amazon account on a usage basis. Personally, I’d prefer a true pay-as-you-go model like some APIs offer, but that’s not how things work with most of the major cloud platforms.
+
+For the most up-to-date information, you can check the Amazon Bedrock pricing page. Once you open that link, you’ll see detailed tables for each supported model family. Scroll down until you find the Amazon section and click to view the prices for the Nova models. It’s important to note that Amazon lists these prices per 1,000 input tokens, not per million as some other providers do — so the numbers may look smaller than you expect. The first column lists input token cost, and the next lists output token cost.
+
+When you look closely, you’ll notice just how inexpensive these models are. Roughly speaking, 1,000 input tokens equals around 750 words — about the size of one medium-length conversation including both user input and model response. If you were using Nova Micro, a single conversation would cost so little that it barely registers. Even with Nova Pro, which is the most expensive of the three variants, the cost of a full conversation (both input and output tokens combined) is still under 0.3 cents. In other words, you’d need three fairly large conversations just to spend one cent.
+
+Given that, we’ll generally default to using Micro or Lite for most of our tests, though I’ll personally use Pro because the difference is still negligible and I’d like the extra performance. Either way, the Nova family is exceptional value for money. That said, you should always keep an eye on the pricing tables, because rates could change over time, and in some cases they may also differ slightly by region. So always double-check that you’re viewing the prices for the correct AWS region you’re working in.
+
+That covers pricing — now it’s time for the fun part: actually integrating Bedrock into our code.
+
+To start, we’ll modify our project so it communicates with Bedrock instead of OpenAI. The first change happens in the requirements.txt file. Although we don’t need to add any new packages, we do need to remove one. Specifically, delete the OpenAI package from the list because we’ll no longer use the OpenAI Python client library. It’s always best practice to keep your dependency list clean and only include what’s truly required. After removing it, save the file.
+
+Now, we move on to the backend — specifically the server.py file. This one will have quite a few changes. After copying the new code into server.py, let’s look at what’s happening. Most of the file remains the same as before, but we’ve introduced some new logic at the top where we create a Bedrock client using the Boto3 library. You might remember Boto3 from earlier when we used it to interact with S3. This time, we initialize a client for bedrock-runtime, using the default AWS region that’s set in your environment variables.
+
+Next, we define a variable called bedrock_model, which specifies which model we want to use. Because we’re still in a development or test environment, you can freely choose between the Micro, Lite, or Pro variants. The Bedrock Model ID value for these models can be copied directly from the Bedrock console, and we’ll be setting it as an environment variable shortly. You can either configure it in your .env file or hard-code it temporarily in the script for testing.
+
+Everything else in server.py — such as how we load conversations locally or from S3 — remains the same. The big addition is a new helper function called call_bedrock, which is responsible for making API calls to Bedrock using the conversation history.
+
+This function looks a little different from how we used to call OpenAI, because Bedrock expects messages in a slightly different format. With OpenAI, we sent messages as objects like { "role": "user", "content": "..." }. With Bedrock, however, we wrap messages a bit differently. To send a system prompt, for example, we include text in the form:
+role: user, content: "system: <your prompt>"
+and for other messages, such as user or assistant responses, we pass role as either "user" or "assistant" and then include the message content.
+
+This formatting ensures Bedrock interprets the conversation correctly. The response object we receive from Bedrock isn’t a specialized API object like with OpenAI — it’s simply a standard Python dictionary (JSON). To extract the generated text, we access the nested key path:
+output['output']['message']['content'][0]['text']
+This gives us the model’s text output.
+
+If you ever need to call Bedrock in other projects, you can simply copy this helper function as-is; it’s a clean, reusable pattern. We also include a bit of exception handling to make the code more resilient.
+
+We’ve also added a new /health route in this updated server.py. It now returns the Bedrock model ID currently being used — helpful for verifying that your Lambda function is correctly reading the environment variable. Some of you may recall seeing this bedrock_model line appear unexpectedly in an earlier Lambda test output; that happened because I accidentally uploaded a version of the code containing this update ahead of time. So if you caught that earlier, well done — sharp eyes!
+
+The rest of the server code, including the /chat POST route, remains functionally the same, except it now uses our new call_bedrock function instead of the OpenAI call. And that’s it — those are all the code changes needed to switch the backend from OpenAI to Bedrock.
+
+Now let’s prepare our Lambda function to work with Bedrock. The first thing we’ll do is define an environment variable that tells Lambda which Bedrock model to use. From the Bedrock console, copy the full Model ID of the variant you’d like to test — for example, Micro, Lite, or Pro. For this demonstration, we’ll use Nova Lite.
+
+Go to the AWS Management Console → Lambda → Functions, and open your function named twin-api (or whatever name you used). Then go to Configuration → Environment variables. If you still have your old OPENAI_API_KEY variable there, you can safely delete it now — we won’t be using it anymore.
+
+Next, click Edit, and add a new environment variable:
+
+Key: BEDROCK_MODEL_ID
+
+Value: <paste your selected model ID> (for example, amazon.nova-lite-v1)
+
+Click Save to apply your changes. That variable is now stored securely within Lambda and accessible to your code.
+
+Before we’re done, there’s one more crucial step: permissions. Remember that each Lambda function runs under an execution role, which defines what AWS services it’s allowed to interact with. Since our code now calls Bedrock, we must explicitly grant it permission to do so.
+
+Here’s how: while still inside your Lambda configuration, navigate to Configuration → Permissions, and then click the link under Execution role name. This takes you to the IAM Role associated with your Lambda. Once there, click Add permissions → Attach policies, and search for “AmazonBedrockFullAccess”. Select it, attach it to the role, and save.
+
+That’s it — your Lambda now has the necessary permission to invoke Bedrock models.
+
+# **Q) Day 3 - Deploying Bedrock LLMs to AWS Lambda and Testing Production APIs**
+
+Next up, it’s time to build our Lambda package and upload all of our new code so that the Bedrock code is ready to run in our Lambda function. This is actually quite easy; it’s a repeat of what we did before. Bring up a new terminal, go to the backend directory, and now we just—though it’s not strictly necessary—could run uv add requirements.txt to make sure we’ve got the most up-to-date code. Then, run uv run deploy.py, which is our script for deploying, and off it goes.
+
+This process builds a directory called Lambda package, which contains a bunch of files that are being built by installing them inside a Docker container. This method is super reliable. Once that’s done, it zips everything up into lambda_deployment.zip, which includes all of these files: our data directory and all the relevant Python packages together in that zip file. You can check the contents by going into the Lambda package directory, and that’s now ready for upload to Lambda.
+
+The instructions provided are for uploading via S3, which is the safer method for slower internet connections. However, we’re going to be brave and do it directly through the AWS Management Console UI. So, open AWS Lambda, find the twin API, and go into the Code section. From there, select Upload from a .zip file. The zip file you want to upload is the one in your backend directory — lambda_deployment.zip. You might notice that it’s the same one you mistakenly selected before, but now it’s the correct version in the right directory. Select Open, then Save, and it will start uploading this new zip file that includes the Bedrock code.
+
+While it’s uploading, let’s review the instructions again. These also guide you on how to upload via S3 for slow connections, with step-by-step directions for both Mac and PC. You can also use a command-line method if you have a fast and stable connection. Once the upload is complete, you should see a green notification that says “Successfully updated the function,” meaning it has worked.
+
+Now it’s time to test the function again. You can use the same health check test event as before. Once executed successfully, you should see a message like “Health check passed” and “Bedrock model.” Hopefully, yours shows “Bedrock Model 2” this time (mine did last time because I accidentally uploaded the wrong step). But now everything should be good — we’re at the same point, and both of us should see the Bedrock model correctly.
+
+In my setup, Amazon Nova Light is the model I picked. You might have selected Nova Micro, but either way, that’s the one that will be used when we run our twin. Excellent — so far, so good.
+
+Now it’s time to test our twin. You can test it with curl to call the API Gateway directly if you want, but we’ll jump straight to testing through CloudFront instead. You probably have your CloudFront distribution saved somewhere — I’ve already got mine open here. That’s our CloudFront distribution; open it in a new page and try interacting with it. Let’s type “Hi there.” This is the first time it’s serving, and I noticed that Nova tends to be quite wordy. There’s quite a lot of text in its response. It says something like:
+
+“What would you like to talk about today? Got any questions about my career, my courses on Udemy, or perhaps the tech stack we use at Nebula? Feel free to ask me anything. I’m all ears.”
+
+It’s quite perky — like me! So let’s try asking, “Do you like cheese?” The model responds with:
+
+“Ah, the age-old question! I must admit, I’m not a big fan of most cheeses. But hey, everyone has their preferences, right? What about you?”
+
+Maybe that’s a little too sunny in tone, but hey, it’s working! It’s now connecting to Bedrock and using the Nova models as our LLM backend.
+
+You might now be wondering — hang on, we didn’t give it any API key or secret key. When we looked in the Secrets Manager earlier, we didn’t add any such credentials. So how does that work exactly? How are we using paid models without an API key? The answer is that we’re doing everything through AWS itself. We’re inside the AWS ecosystem, so the requests go against our existing AWS account. That means the usage and associated costs are billed directly to us. We’ll see these costs reflected in the AWS Cost Explorer or Billing Center when we sign in with root permissions. And if the charges go above any defined thresholds, we’ll get notification emails from AWS.
+
+So it’s all built in — seamlessly integrated into the AWS cloud environment.
+
+# **R) Day 3 - Monitoring Production AI with CloudWatch and Bedrock Metrics**
+
+But I know you — you’re not the trusting sort. You want evidence that we’re actually calling Nova. It’s not clear; maybe it’s still calling OpenAI, just in a more chatty kind of way or something. We need to see what’s really going on. And that’s a great moment for us to dive into CloudWatch, the monitoring side of AWS, which gives us visibility into everything happening behind the scenes.
+
+So, from the AWS console, we’re going to navigate to CloudWatch. Once there, we’ll go to All metrics and start by looking at some metrics associated with our Lambda function. There are a few different ways to get to this, but we’ll begin from the CloudWatch homepage. In CloudWatch, go to All metrics on the left-hand menu. You’ll see a range of metric categories to choose from. We’re going to begin by looking for Lambda, which should appear in the list.
+
+Within the Lambda section, you can choose to view metrics by resource or by function name. Let’s go by function name. You’ll notice there are a few other Lambda functions that will appear — these are for upcoming features — but let’s stay focused and find the Twin API function. Once selected, you’ll see metrics such as Errors, Duration, Concurrent executions, Invocations, and Throttles. These charts display everything that has happened with the Twin API in the selected timeframe. You’ll see nice charts showing trends, and you can zoom in on the last hour to get a closer view of recent activity. This gives you clear visibility into what’s happening with your Lambda function.
+
+Now, let’s move on to Bedrock metrics to see what’s happening there. Click near the top navigation to return to All, and from there, navigate to Bedrock. The interface can be a bit confusing, but essentially, it overlays the metrics you select onto a single timeline. Once inside Bedrock, choose By model ID, and select your chosen model — for example, Nova Lite. You can then select metrics such as Invocations, Input tokens, Output tokens, and Latency.
+
+Now you’ll see this information superimposed on your existing chart alongside the other metrics. For example, here’s a Bedrock event — you can see that the green line represents Bedrock activity. The latency appears to be about 1000 milliseconds (roughly one second) for a response. You’ll also notice the Input token count was 4800, the Output token count was 134, and Invocations was one.
+
+So there’s your proof — if you didn’t believe me earlier, this confirms it. We did, in fact, call Amazon Nova Lite, and CloudWatch tells us so. This demonstrates how you can combine different metrics to visualize them all on a single timeline, giving you full insight into your AWS activity. You can control the time range and navigate through the metric options to tailor what you see.
+
+You can also access logs in a convenient way from CloudWatch. On the left-hand menu, go to Log groups, then choose something relevant, such as Twin API. Once you open a log group, you’ll see entries corresponding to different execution times. Select one, and it will display detailed log information. You might need to click Display and Expand all rows to see it clearly. Inside, you’ll find details such as the incoming requests, how long they took to process, the billing amount, memory usage, and other technical details. While we haven’t added extensive logging yet, this is where you would review logs if you did.
+
+You can also set up dashboards in CloudWatch, which can be incredibly useful. From the top navigation, click on Dashboards, then Create dashboard. Let’s call ours Twin Dashboard and click Create dashboard. Once created, you’ll be prompted to add widgets. Let’s start with a line chart from Bedrock. Choose By model ID, and add metrics like Input tokens, Output tokens, Invocations, and Latency. This gives us a live line chart tracking Bedrock usage.
+
+Next, click the + button to add another widget — this time for Lambda. Go to the Lambda section, choose By function name, and select Twin API. Add metrics like Duration and Invocations to visualize how long each function call took and how often it was triggered.
+
+Finally, let’s add one more widget — a number widget to track errors. Scroll down to the Lambda metrics again, choose By function name, select Twin API, and pick Errors. This will display a numeric value showing the total number of errors. In our case, it shows a big zero, which is exactly what we like to see — no errors from Lambda!
+
+That’s enough to give you a good example of a dashboard. You can now monitor your Twin API calls, Bedrock performance, and error rates all in one place.
+
+It’s worth noting that much of this information can also be accessed directly from the Lambda console page. If you go to your Lambda function and select your Twin API, there’s a Monitor tab. Inside that tab, AWS automatically configures and displays key CloudWatch metrics such as Invocations, Duration, and more. You’ll also see your most recent CloudWatch logs conveniently listed below — both the most recent and the most expensive invocations. This is the quickest way to view all monitoring data for a single Lambda function.
+
+And that’s a wrap for Week 2, Day 3. We just added Amazon Bedrock to our AWS deployment, and everything worked beautifully with just a few small adjustments. It also served as good practice for re-uploading a Lambda function, which turned out to be straightforward. Everything came together nicely, and we were able to use the Nova models successfully.
+
+Then, using CloudWatch, we confirmed beyond doubt that our function was indeed calling Amazon Nova models via Bedrock. That’s a big milestone! I promised you a lighter day — and it was a bit lighter — but we still made great progress.
+
+Tomorrow is a huge day. We’ll move on to using Terraform (Infrastructure as Code) to build the entire Twin environment. You might think, “Why didn’t we just start with this?” But everything we’ve done so far was important — a rite of passage. It helps you appreciate just how great Terraform really is. That’s what’s coming tomorrow, and I’m really looking forward to showing you what Terraform can do. See you then!
