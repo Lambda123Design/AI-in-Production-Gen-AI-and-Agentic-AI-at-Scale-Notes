@@ -103,6 +103,17 @@ This Repository contains my Udemy course notes of "AI in Production: Gen AI and 
 
 **R) Day 3 - Monitoring Production AI with CloudWatch and Bedrock Metrics**
 
+**S) Day 4 - Infrastructure as Code for AI: Deploying LLM Apps with Terraform**
+
+**T) Day 4 - Infrastructure as Code: Automating AI Deployments with Terraform**
+
+**U) Day 4 - Automating AI Deployments with Terraform and Shell Scripts**
+
+**V) Day 4 - Automating Full-Stack AI Deployment with Terraform and AWS**
+
+**W) Day 4 - Multi-Environment AI Deployments: Dev, Test, and Production Setup**
+
+**X) Day 4 - Testing Production AI Deployments and Terraform Cleanup Workflows**
 
 # **A) Day 1 - Instant AI Deployment: Your First Production App on Vercel in Minutes**
 
@@ -1592,3 +1603,235 @@ And that’s a wrap for Week 2, Day 3. We just added Amazon Bedrock to our AWS d
 Then, using CloudWatch, we confirmed beyond doubt that our function was indeed calling Amazon Nova models via Bedrock. That’s a big milestone! I promised you a lighter day — and it was a bit lighter — but we still made great progress.
 
 Tomorrow is a huge day. We’ll move on to using Terraform (Infrastructure as Code) to build the entire Twin environment. You might think, “Why didn’t we just start with this?” But everything we’ve done so far was important — a rite of passage. It helps you appreciate just how great Terraform really is. That’s what’s coming tomorrow, and I’m really looking forward to showing you what Terraform can do. See you then!
+
+# **S) Day 4 - Infrastructure as Code for AI: Deploying LLM Apps with Terraform**
+
+I have something really great in store for you today — Terraform. That is what we'll be working on today, and it's going to be terrific. We are now in the section after building all of our Amazon infrastructure. I've taken you through the trauma of setting up all these different resources, and now I'm going to show you how you can do it all just with some code, super easily. And you'll hate me for making you go through that.
+
+But first, before we go and visit the magic of Terraform, we actually have to have our final time going through all of the AWS screens, because we need to delete the resources that we've already created manually. So let's go — go right now to AWS, logged in as our IAM user, and delete some resources.
+
+So here I am at the console home. A lot of what we're going to do is now in the recently visited section, so we can just click straight here to go to Lambda. You should only see twin API right here. Oh, look at that new feature — account color. That actually might be quite useful, and it is a good moment to just note that we are logged in as AI engineer, the IAM user, as we should be.
+
+Go into twin API. Here we are in twin API. Go to Actions at the top and click Delete function. It’s going to say deleting permanently removes its code. We'll press delete, and it’s been successfully deleted. Never fear — we’re going to be creating it again if you’re wondering, “But what about my digital twin?” It’s going to come back, and it’s going to be so much easier.
+
+Alright. Next up, let's go back to the home page. Let’s go next to the API Gateway. Right here, we are going to find the twin API gateway. Click into here… actually, we didn’t need to click into there. Sorry. Go back here — I think we click here and press Delete. Proceeding with this action will immediately delete all resources — can’t recover. It makes you type confirm to be absolutely sure you know what you’re doing. There we go — delete. Successfully deleted. It has gone.
+
+Next up, we’re going to go to S3 and have a look at our S3 buckets. We have a couple of them — frontend and memory. Let’s start with memory. This is a bit of a pain, but you have to empty it before you delete it. So select it and press Empty. In order to confirm that, you have to type permanently delete. But as it happens, you can also do a little hack here — copy that text, paste it, and then empty. That’s a little pro trick for you.
+
+It’s now empty. Now we want to go back, select it (the memory bucket), and press Delete. It says to confirm deletion, enter the bucket name — you can’t type there, but what you can do is copy it, paste, and click Delete bucket. And it’s gone.
+
+Now do the same, of course, for the frontend bucket. Go to frontend, click Empty, type permanently delete, use the little trick again — copy, paste, empty — and it’s gone. Now go back, select it, press Delete, type frontend, copy, paste, and Delete bucket. Success — we’ve deleted a bunch of resources.
+
+There’s one more to go. Do you remember what the last one is? What’s the last resource we haven’t cleared yet? Yes — it’s the CloudFront distribution.
+
+Back we go. You see, that was that listening thing again — the new feature in Udemy. Okay, so now we go to CloudFront, come here, go into our CloudFront distribution — our twin distribution — and we want to delete this. To delete it, we actually first have to disable it. So start by pressing Disable. “Are you sure you want to disable?” Yes, disable. Let it do that.
+
+Then select it again — it’s not yet disabled, so we can’t delete it yet. Hang on, let’s refresh our distributions. It’s in the process of disabling, so we’ll have to wait just a second for this to complete. Go back to CloudFront — it says Deploying. Disabling can take five to ten minutes actually, so I’ll put you on hold while that happens.
+
+And I’ll see you in five minutes, which will just be one second for you — it’s like you just time traveled five minutes into my future. Here I am — no time passed for you. Now it has been disabled. I checked that box, pressed the Delete button, and that will permanently delete our distribution. And we have now officially cleaned up our resources.
+
+So it is my great joy to unveil for you Terraform, the product that we’ll be using to create environments going forward. Terraform was written by someone called Mitchell Hashimoto, who founded (with someone else) a company called HashiCorp about fifteen years ago or so. They came out with Terraform, among other tools — they also wrote Vagrant. Terraform has been ferociously popular, and it’s one of those things that once it’s everywhere, you kind of wonder how anyone survived without it.
+
+I want to give you an explanation of what makes it so powerful and then talk you through the terminology so you feel ready for the week ahead of building with Terraform. We’ll be doing that for the rest of the course — and hopefully you will, for all of your time building production environments. It’s the only way to do it.
+
+So, the idea is all about creating infrastructure services by writing code to describe the configuration of the services. This whole approach is known as Infrastructure as Code (IaC). There are many reasons for doing this, but three come to mind first.
+
+First, this gives you control over your infrastructure. Some of the configuration is checked into Git, so you have it versioned — and different versions of your software can go along with different versions of your infrastructure. If you have a new database configuration or something that changes with your product release, then the Terraform scripts that go with that release can be branched, version controlled, merged, and reviewed — just like code. It makes so much sense.
+
+Instead of having some kind of deployment sheet — we used to have those massive deployment lists, which involved going into AWS and clicking around the console — if you made a mistake, like leaving out a hyphen from us-east-1, then yeah… all hell broke loose. So it’s just such a better way of doing it.
+
+Second, it’s automated. We’ve been clicking around these console screens, and it’s been laborious to say the least. Now, it’s all something where you press a button and the environment just comes out of the box. It deals with the fact that you have to set variables like the S3 bucket name and everything else — it’s all handled for you.
+
+Third, it’s repeatable. You can run it once and then again as often as you like, and you’ll always have exactly the same environment. That also means you can build an environment once for test and then build the same one for production — which, of course, is a great thing.
+
+Now, Terraform is one version — one type — of Infrastructure as Code. There are others. AWS itself has a product called CDK, built specifically for AWS, and it’s quite popular. But I’m going through Terraform because it’s supported by other providers as well — GCP, Azure, and more. In the industry generally, Terraform is very common indeed. It’s a great skill — good résumé fodder — something you can put on your CV and say you have experience with Terraform. And it’s just terrific. So I’m very happy to be talking you through this today.
+
+Rather like frontend development, I’m not going to go deep on Terraform — I’ll leave that as an exercise for you. We’ll be copying and pasting code again, and I’ll be giving you some intuitions about it, but I’ll ask you to go away, read through it, and understand it in your own time.
+
+Let me now give you the terminology — the things to look out for, the constructs. You might want to get a piece of paper and pen to write these down. This is a good thing to keep note of, or use a notepad on your computer.
+
+Take note — here are the six bits of terminology that we will be coming across very shortly:
+
+Provider — In Terraform, a provider is like a cloud provider, a vendor — AWS, GCP, Azure, etc. It’s like a plugin that configures Terraform to apply itself to that provider.
+
+Variable — A variable is like a setting, a parameter that controls your deployment. For example, the Bedrock model ID would be a variable.
+
+Resource — This is the fundamental building block of your infrastructure. Your infrastructure consists of a number of resources — for example, an S3 bucket.
+
+These three — provider, variable, and resource — are the most essential terms. If you remember anything, it’s these three. We use them, and information about them gets checked into Git, so this really describes our environment to Terraform.
+
+Now for three more terms:
+
+State — Terraform’s understanding of what is currently deployed on your live infrastructure. State is stored in private files that we do not check into source control.
+
+Output — The results of a deployment, e.g., a CloudFront distribution URL that you want to visit after the deployment completes.
+
+Workspace — A more advanced concept, but one we’ll use today. Workspaces allow you to have completely separate sets of state in isolated ways — like different “worlds” for development, test, and production. It’s similar to a namespace and allows one configuration to be applied to different isolated environments.
+
+These are the key terms. The main commands you’ll use are:
+
+terraform init
+
+terraform apply
+
+terraform destroy
+
+These commands initialize Terraform, apply your configuration, and tear down resources respectively.
+
+Right — enough talk. Let’s go and work with Terraform.
+
+# **T) Day 4 - Infrastructure as Code: Automating AI Deployments with Terraform**
+
+And here we are, back in Casa, and back in the twin project. The great news is that we won’t be needing to go to the AWS console, because we’re going to be doing things automatically. The only time you still need to go to the AWS console, of course, is IAM setup — when you’re setting up, like, going in as root to set up the permissions that you’ll be able to give your IAM. That is still needed, but we won’t be doing that right now.
+
+Okay, so we go to the week two folder. We’re now on day four. We open the preview to see our instructions for the day, and it starts with stuff about what you’ll learn. Part one is cleaning manual resources, which we already did. Hope you did that too — that’s very good. And then, it doesn’t suggest it here, but it should suggest that this might also be a good juncture to go and check your spend. Pause for a second, go in as root and just check what your cost and billing looks like. Make sure that it’s exactly what you expect. I imagine all of you are on the free AWS sign-up plan, in which case your cost will be right — right? Zero. But it’s always important to check, even if you think it should be zero. Go and have a look.
+
+Anyways, go do that now — and then we are back. Part two is understanding Terraform. Well, as it says here, it’s about being version-controlled, automated, and repeatable. And here are some of the key concepts again. But this is now what to look for in the code. So this structure is what Terraform code looks like. Resources, of course, are these essential building blocks. A resource is like an S3 bucket. So here’s an example: resource “aws_s3_bucket”. Then it’s got a name, and it’s got the attributes of that resource listed inside curly braces.
+
+The state — so the state is Terraform’s understanding of what’s actually out there in real life. And it’s stored in a special file called Terraform state. So TF state files contain Terraform’s view of the world. I mentioned a provider. The provider is like AWS — that’s a provider. And you define that with the word “provider”, then the name, and then some parameters in curly braces. And I mentioned variables — this is where you set parameters that control your configuration, like this one which has a name, an environment name, and the type is a string. And then I mentioned workspaces, that allow you to have completely separate states, say for development, test, and production.
+
+All right, first things first — we need to install Terraform. And for a Mac and a PC, these are the ways to do it. On a Mac, if you use Homebrew, then it’s just this: brew tap hashicorp/tap and then brew install hashicorp/tap/terraform. “HashiCorp” is the name of the company. The key author, Mitchell Hashimoto, it’s his last name. And once you’ve done this, you should be able to bring up a new terminal window.
+
+If you’re on PC, there’s a link here that tells you what to do. And when we’re ready, we need to do terraform --version and just check that we have version 1.13. That’s a pretty recent version. Look at that — it says version 1.1; we have 1.13. All right.
+
+And now it’s time for us to set some things in a .gitignore. Now, I don’t think I mentioned a gitignore before, because this isn’t actually a repo, but it will be soon — soon enough. And it’s good to have a gitignore to make sure that things that shouldn’t be sent to git don’t get sent to git. When it comes to Terraform, you want lots of things about Terraform to go in git, but there are some things that you don’t want. You don’t want these Terraform state files in git because they relate to the current world out there on AWS and change all the time — not appropriate for version control.
+
+There are some lock files you don’t want there, and other private files. TF vars are the variables that could be used to control what’s going on, and they could have some secrets in them. But there is one thing: when you put a bang (!) in a .gitignore, it means “include this file.” So, we want to include terraform.tfvars — the general variables — we do want to include that. And actually, we do want to include prod.tfvars as well, as you’ll see.
+
+While we’re at it, we might as well set up our .gitignore to be good — which means that we want to not put into source control our zip file, and that whole directory lambda_package. We never want environment files in there, actually, with one little exception that will come up later. And we don’t want node_modules, which is stuff that’s been npm installed, and the static outputs, and any of this stuff — and obviously a virtual environment. Actually, I think we fix this later, but yarn.lock is something that you do normally want in source control. Anyway, I’m going to copy all of that, I’m going to go to .gitignore, paste all of this in and save. And that is now setting up my .gitignore so that we are in good shape.
+
+Okay, it’s now time to create our Terraform configuration. So the next step then is to create a new top-level folder in our project called terraform. There it is. We’re now underway. And we are going to — yes, we do indeed have this directory structure. We are now going to make our first Terraform file called versions.tf. This is your first look at Terraform code.
+
+Now, .tf files are the key files which describe your configuration in code. And you can have as many of these .tf files as you want. Terraform actually internally just brings them all together into one long list. So there are some conventions — it’s common to have versions.tf and variables.tf and main.tf. It’s really up to you. It is common to split things out. And today we’re going to have one pretty big Terraform file just to keep things simpler, but it would be more typical to divide it into multiple files.
+
+Anyway, for our first file — our first file is called versions.tf. Here it is — versions.tf. And we’re going to paste this in. Let me tell you what this does. It is setting up our providers and their versions. Here they are. And save that. We’re saying that we’re using AWS in us-east-1.
+
+Okay, back we go. That’s our first Terraform file. The next one is defining some variables. It’s going to go into variables.tf. Here they are. Let’s select the variables — variables.tf in the terraform folder — new file, variables, and paste. And let’s have a look at this.
+
+This is all sorts of stuff that we’re going to have through our configuration. It’s got things like bedrock_model_id — I told you it was a variable. Here it is. And that’s the default value right there. The lambda_timeout of 60s, and various other things here. There’s a special one here that we’re not going to be using yet, but we will use later, called use_custom_domain, which is set to false first of all. But later we may consider setting that to true. You may be wondering about custom domains — but it’s been coming.
+
+Okay, so that is variables.tf. Back we go to here. It’s now time for the big guy — main.tf. And as I say, it would be more typical to divide this into multiple files, but we’re just going to have one massive file here that describes everything. This is all Terraform code, which is doing all the clicking around in the console that we were doing in the last couple of days. Look at all this!
+
+So yeah, I mean, in some ways, there’s still work to be done — there’s no getting around that. But of course, it’s definitely more in our world to be writing that as code instead of clicking through screens, which feels much less predictable and repeatable.
+
+So main.tf is what we’re calling this file, and we’re pasting in the full contents. And let’s just take a look somewhere here to give you some examples. Here is the setting up of the IAM roles that are telling Lambda that it has access to Bedrock and S3 — remember when we did that? This is giving Amazon Bedrock full access and Amazon S3 full access to our Lambda component. That’s an example of something that we configured and where it’s getting set up.
+
+And you can see — let’s find something else. Let’s find something simpler than that. That was quite an advanced one to start with. Let’s just find an S3 bucket. Here is an S3 bucket, which is called memory. It has been given a prefix before it as a variable name, then the word “memory,” and then the account ID coming after it. And this prefix — I’ll give you a preview — is going to be like “twin,” and then either “prod” or “dev” or “test” depending on the environment we’re in. That’s how we will be separating things out.
+
+And yeah, that’s really — that’s all there is to it. Well, that’s not really all; there’s a whole huge file. It’s all I’m going to explain of it. The action for you is to go through this and look through it and learn from it. And this is definitely a rabbit hole worth exploring if you’d like to find out more about how you configure the different AWS services using Terraform.
+
+Here, for example, is a super important one: it’s where we define the Lambda function called api. We give it the file name that it has to upload from, we give it the name of the function — twin_test_api. We give it the role, this is the handler (remember when we set up Lambda — lambda_handler.handler). We give it the runtime, we tell it the x86 architecture, and this is where we use the variable that we set up for lambda_timeout that we saw just a second ago.
+
+This is where we set the CORS origin — all that chestnut. You can see that there’s some stuff here that’s complicated, because when we use a custom domain, we need to switch in a different origin. But you can see basically that if we’re not using a custom domain, then it’s going to use the CloudFront distribution that’s been generated for AWS — that’s what’s going to go in there. use_s3 is true. bedrock_model_id is the Bedrock model ID variable that you saw being defined earlier.
+
+And this depends_on, just as the comment says, means that Lambda is going to wait before it’s fully created until the distribution exists, because it needs to be able to set that in this variable here. I actually think this isn’t strictly required, because Terraform figures out those kinds of cross-dependencies for itself, but there’s no harm in saying it if you know that it’s there.
+
+Okay, as I say — and here’s the AWS API Gateway. I’m not obeying my own advice; I can’t resist telling you about these things. Come and have a look through each of these to see how it all works — the CloudFront distribution right here — and see how all of the fields that we set ourselves are created here. This is the methods — DELETE, GET, HEAD — and hooking up our CloudFront distribution to make sure that it’s going to take the S3 bucket that we set up.
+
+So look through it all. That’s the to-do. That’s your assignment. And come back when you’ve seen it, you’ve done some Googling, and you’ve satisfied yourself that main.tf describes the resources that we will be building on AWS.
+
+# **U) Day 4 - Automating AI Deployments with Terraform and Shell Scripts**
+
+And that's the heavy lifting done for Terraform. We're in the final pieces now. We need to set some default variable values, and this goes into a file called terraform.tfvars, the defaults. So, in Terraform, create a new file named terraform.tfvars and paste that in. By default, the project name is twin, the environment is dev, we're going to use the micro model by default, and these are the other values like the timeout of 60 and so on. Also, we won't be using a custom domain—that is our default.
+
+So, these are the settings for the variables right under “variables.” Back to the instructions—we also need to make a quick little update to the frontend. In the frontend, we’ve actually got it hardcoded to go to localhost:8000. We’re going to have to just change this to a slightly more sophisticated version. Change this URL to be right here—copy this new URL snippet and replace the old URL in twin.tsx. This is the URL called by our static frontend to the server. We can’t make this manual 8000 line anymore, so let’s go and make that change.
+
+That file is in the frontend/components/twin.tsx. Here it is. Of course, we had already changed it earlier to point not to localhost, because otherwise nothing would have worked—we had hardcoded it to be the “execute” URL when we tried that out. Now, we’ll paste in this new snippet and save the file. Now, it’s going to take this environment variable instead.
+
+Okay, now let’s go back to the Terraform guide, and now we are going to come down and finally create our deployment scripts, which are the shell scripts that we will run locally to kick off the Terraform process. Let’s do that next.
+
+Actually, before we go on, I want to take a moment to step back and explain something that I think I glossed over—because it’s a bit tricky. The twin.tsx file is part of our frontend, and this is something that’s statically turned into a website. We put this into the CloudFront distribution—it goes all over the world—and it includes this line here, which is the place where your browser makes a call to the API Gateway. Originally, when we wrote this, it was hardcoded to look at localhost:8000. That’s because we were running everything locally and we needed our frontend to hit our local server.
+
+When we deployed this to AWS, we first deployed Lambda and then the API Gateway, set that up, and then came back here and put over here the URL of our gateway deployment. That was then hardcoded, so when deployed to the browser, the browser would always fetch from our API Gateway route—and that’s how we did it. Then we deployed our frontend.
+
+Now we need to be able to do this in a repeatable way, and this involves digging into our code. That’s not something Terraform can do—it can’t edit your application code. That’s why this step requires you to make the URL configurable in your code, using something like a Next.js environment variable that can get changed during the build. This kind of stitching together—where deployment affects code behavior—is the sort of thing you handle in deployment scripts, which bring everything together and trigger Terraform.
+
+So with that, let me save this change, and I hope that explanation makes more sense now—you can see why this is a tricky but crucial step that stitches together the frontend and backend.
+
+Now that we’ve cleared that up, let’s move on to the deployment scripts. We have different scripts for Mac and Linux, and scripts for PowerShell for PC users. I’m going to start by focusing on the Mac script.
+
+By the way, if you’re a PC user and you have WSL, I’d personally suggest doing this in your Ubuntu side—it will just make things more consistent for you. But of course, you can choose either way. Since I’m on a Mac, I’ll take the Mac script and make a new folder called scripts. So, create a new top-level folder named scripts. Inside this folder, create a new file called deploy.sh.
+
+Paste the entire Mac deployment script into this file. Let’s take a quick look at what this deployment script does.
+
+First, it builds the Lambda package. Remember earlier, when we went into the backend and ran uv run deploy.py? Note that .py is optional—you can just run uv run deploy py without it. Then it goes into the Terraform directory and calls terraform init to set up Terraform. That initializes Terraform and prepares it to run.
+
+Next, the script changes the workspace. It selects a workspace that we’ll pass in as a variable—either dev, test, or prod. Those will be our three workspaces, representing the development, test, and production environments. We’ll actually build three different environments using this system. Imagine if we had to do that through the AWS Console—it would be exhausting. But using Terraform, it’ll be wonderfully simple.
+
+Then, we call terraform apply, which is the next command. As I mentioned before, you usually do terraform init followed by terraform apply. That’s the step that actually runs the Terraform script and applies the infrastructure changes.
+
+After that, we do the tricky part I mentioned earlier—this is where we go into the frontend directory, and we’re going to set the variable NEXT_PUBLIC_API_URL to be the API Gateway URL that came out of the Terraform apply process. Then we use that environment variable to build the frontend and push it to the AWS S3 frontend bucket.
+
+Does that make sense? We do the Terraform apply, find out what the gateway URL is, assign it to the environment variable NEXT_PUBLIC_API_URL for Next.js, build our static site, and push it to the frontend bucket. Then we’re done, and the script outputs the results.
+
+That’s why this deployment script is so useful—it handles all the orchestration between Terraform, your backend, and your frontend deployment. Terraform sets up the resources and configures the infrastructure, but when you have something like code updates or data pushes, you handle that in your deployment script.
+
+Now, let’s quickly make the script for PC users. Go to the PC section of the guide and copy the PowerShell script. Create a new file in the scripts folder called deploy.ps1, and paste the copied PowerShell script inside. It may complain that it doesn’t have PowerShell because I’m on a Mac, but when you do this on a PC, it will prompt you to install a PowerShell plugin for syntax highlighting—and you should install it, so your script is nicely formatted.
+
+Now, we have both scripts ready. Since I’m on a Mac, there’s one final thing to do: on a Mac, you need to run a chmod command so that the script can actually be executed. Open a new terminal window—no need to cd into the scripts directory—you can just run this from the twin project root.
+
+If you’re not familiar with chmod, it’s a command that changes file permissions. This makes sure that you have permission to run the script. This only needs to be done on Mac or Linux.
+
+For PC users, however, you’ll still need to bring across the deploy.sh file as well—for reasons that will become clear later. Even though you can’t run it directly on your PC, you’ll understand why soon.
+
+And that’s it! Those are our deployment scripts. We’re getting very close to being completely done now.
+
+# **V) Day 4 - Automating Full-Stack AI Deployment with Terraform and AWS**
+
+Oops. Did you spot my intentional error there? I seem to have skipped step five in my haste to get to using Terraform, which would be a mistake. Step five is defining the outputs file. Terraform outputs need to be done as well. Maybe you did it already and were thinking, “Why didn’t I do that?”—you should have told me.
+
+So, I copy this file and go into our Terraform directory. You’ll notice I did not create it yet. Right-click, create a new file, and call it outputs.tf. Remember, in practice, all these .tf files get scrunched together by Terraform, but the outputs file is just a convention. You can call it whatever you want. This file defines the different attributes that will come out once the whole environment is up and running. For example, it contains the CloudFront URL, which is the URL of the CloudFront distribution we’ll be able to go to, along with other variables that emerge from the final deployment.
+
+Okay, moment of truth. Let’s do this. First, go into the Terraform directory by running cd Terraform. Now, we run the first Terraform command: terraform init. Are you ready for this? Running terraform init sets up Terraform, installs the required plugins, and prepares it to create resources. You should see it installing the necessary components, which looks promising. Once this completes, we’re ready to kick off our deployment.
+
+The other Terraform commands we need to run will actually be executed by our deployment script, not manually. So you won’t get to type terraform apply yourself—but you saw where it is in the script. Once terraform init is successful, Terraform is happy, and we can move on. We go up one directory, ensuring we’re in the twin directory, which is the parent of Terraform. Now we’re ready to run the deployment script.
+
+On a Mac, thanks to the earlier chmod command, the script is now executable. We run it with ./scripts/deploy.sh. After that, we specify the workspace we want to use—essentially a namespace. The value should be dev, test, or prod, because our script is designed to look for one of these three options. This allows Terraform to set up entire parallel environments with all the required infrastructure for each workspace. The naming convention for resources follows this pattern: twin-dev-S3, twin-dev-memory, twin-dev-frontend, or similarly for test and prod. I’ll use dev for now, which will create a complete environment for our development workspace.
+
+As the script runs, it displays “Deploying,” and it’s running too fast for a detailed commentary. The script packages the backend, creating the Lambda zip file, and then begins running Terraform. You can watch as it creates all the resources: S3 buckets, CloudFront distributions, and more. This is extremely exciting, and if you hadn’t been through the journey of day two of this week, you might not fully appreciate the heavy lifting that’s happening behind the scenes. While it looks simple, Terraform is handling a lot of complex steps automatically.
+
+One thing to note is that creating the CloudFront distribution typically takes 5–10 minutes, requiring you to keep pressing refresh if done manually. The Terraform script handles this by polling, updating you every 10 seconds, and waiting until the distribution is fully created. Even so, I recommend fast-forwarding if you’re not running this yourself—otherwise, be prepared to wait 5–10 minutes for everything to complete.
+
+Once the deployment finishes, we should have a complete infrastructure built automatically. When it’s done, you should see positive outputs: “Deployment complete!” and the CloudFront URL, which comes from the outputs file we defined. Following this link, the deployed digital twin should open in your browser. You can test it immediately. For example, sending a message to the API or checking a memory function works, even with the small, inexpensive model. The Lambda function, CloudFront distribution, and other resources are all operational.
+
+You can further verify that everything is working by interacting with the API. For example, providing a name or asking a simple question will show that conversation history is being stored and used, confirming that memory functionality is active. This confirms that Terraform successfully deployed the environment, replacing a whole day of manual setup with a single script execution.
+
+To validate in AWS, sign in as the root user and check Lambda. You’ll see a function named twin-dev-API, the one just created by Terraform. You can inspect the function code, verify the environment variables—including the Bedrock model ID set to micro, the CORS origin pointing to the CloudFront distribution, and S3 bucket settings with use_s3 = true.
+
+Checking S3, you’ll find a bucket named twin-dev-memory-[account-id]. Open it and review the contents. For instance, the JSON blob storing conversation history, such as the interactions about “Alex,” confirms that memory is working as expected. All the resources created by Terraform are present, fully functional, and validated. This is the power of Infrastructure as Code: an entire environment deployed automatically, reliably, and repeatably.
+
+# **W) Day 4 - Multi-Environment AI Deployments: Dev, Test, and Production Setup**
+
+Now, I hope to completely blow your mind, because I’m going to do something wonderful: running our deployment script a second time but with a different parameter. Instead of using dev, I run ./scripts/deploy.sh test and press enter. As you might have guessed, this will package everything up again, run Terraform, but now with the test workspace selected. All of our resources will be created with -test in their names rather than -dev, resulting in a second, parallel setup of the entire infrastructure on AWS. This includes S3 buckets, Lambda functions, API Gateway, CloudFront distributions, and all other connected components. Both environments will coexist completely independently because their names differ everywhere, giving us two isolated universes: one with -dev and one with -test.
+
+While this is running, one professional tip is that a truly robust setup would use different IAM users for each environment. That would ensure permissions isolation between dev, test, and prod, so logging in as separate users would further secure the workflow. We haven’t done that here, but it’s a good exercise for anyone following along. Meanwhile, the script sets up the parallel test environment, which, like before, takes five to ten minutes to complete, and during this period, Terraform polls until the resources are ready.
+
+Once finished, we see the deployment complete with a CloudFront URL. Opening the URL in a browser brings up the digital twin, and it’s immediately functional. We can ask it questions, such as “Do you like cheese?” and it responds correctly, demonstrating that the Lambda function, API Gateway, and memory are all working. Meanwhile, the dev environment continues running independently. We now have two tabs in our browser representing two parallel conversations, one on the dev environment and one on test. Each uses a different CloudFront distribution, API Gateway endpoint, Lambda function, and S3 bucket—completely separate infrastructures running side by side.
+
+You can verify this in AWS as well. Signing in as your IAM user, you can navigate to Lambda and see two functions: twin-dev-API and twin-test-API. Checking CloudFront distributions shows two corresponding distributions, each attached to its respective environment. This confirms that both environments are live, isolated, and fully functional on the internet.
+
+Next, we move to optional part eight: a production deployment with a custom domain. This step is optional because it incurs additional cost for domain registration. It’s useful for a production-ready digital twin that deserves its own URL. Even if you already have a domain, this demonstrates how to register and link a domain to an AWS-hosted environment. We’ll use Route 53, AWS’s service for domain registration and DNS management.
+
+Signing in as the root user, we navigate to Route 53. Here, domains can be registered by clicking “Register Domains” and checking availability. For example, edwarddigitaltwin.com costs roughly $15 for registration. After selecting a domain and completing the registration form (including email verification and optional privacy protection), the domain is ready for use. Terraform will handle connecting this domain to our AWS resources, including setting up DNS records and SSL certificates.
+
+Back in our code, we now create a new configuration file called prod-vars.tf in the Terraform directory. This file overrides defaults specifically for the production environment. We set the project name to twin, environment to prod, and select the production-grade Bedrock model (Amazon Nova Pro), which remains cost-effective. We also specify the custom domain name (e.g., digitaltwin.com) in this configuration. All other parameters remain similar to our dev and test environments.
+
+Once the configuration is ready, we run ./scripts/deploy.sh prod. The deploy script first rebuilds the Lambda function zip file, then hands over control to Terraform. Terraform creates all AWS resources for production, including S3 buckets, Lambda functions, API Gateway, CloudFront distributions, and DNS configuration. The script also ensures the CORS settings match the new domain. The entire process takes five to ten minutes for the distribution to fully propagate. Terraform manages SSL certificates, sets DNS records, and deploys the static frontend site, all automatically.
+
+At the end of the deployment, we have a fully functional production environment with a custom domain, in addition to our existing dev and test environments. Terraform handles the heavy lifting, so all resources are correctly configured and linked, allowing a live production digital twin to operate seamlessly on the internet, just like the development and test environments.
+
+# **X) Day 4 - Testing Production AI Deployments and Terraform Cleanup Workflows**
+
+Okay, it’s finished. This seems almost too good to be true, but the deployment is complete with a CloudFront URL and a custom domain, add.digitaltwin.com. Should we give it a try? Let’s see if it works. First-time command-click to open the third digital twin, and it comes up. To recap, we now have three environments running: development, test, and production, each coming from their respective digital twins, secure with SSL certificates. Opening the production environment, we can say “Hi there,” and watch the Lambda spin up. It takes a few extra seconds the first time, but then it responds perfectly. Testing further, we ask, “Do you like cheese?” and it gives a substantive answer quickly, cleverly referencing French food, even though we never mentioned it. Everything is working beautifully, and our production environment is live on the URL. Congratulations! We now have three parallel environments set up in AWS: dev, test, and prod, all live, running independently, and fully functional.
+
+To double-check, we can go to the CloudFront console. There they are: three distributions—twin-dev, twin-test, twin-prod—and the production digital twin. Everything is running: three Lambda functions, six S3 buckets, three API gateways—all provisioned by Terraform. It’s truly gratifying to see it all come together.
+
+Next, we move on to destroying the environments, which we had skipped over initially. Following the instructions, we create two scripts: a shell script for Mac/Linux and a PowerShell script for Windows. In the scripts folder, we create destroy.sh and paste the shell script, saving it. Windows users create destroy.ps1 for PowerShell. Mac/Linux users run chmod +x ./scripts/destroy.sh to make it executable.
+
+We start by destroying the development environment: ./scripts/destroy.sh dev. Terraform switches to the dev workspace and begins emptying the S3 buckets automatically before deleting resources. It proceeds to destroy the entire environment. CloudFront distributions, which always take a few minutes to complete, are handled by Terraform’s polling mechanism. We then repeat the process for the test environment and finally the production environment. Note that the domain registration is not removed; the $15 registration fee remains, but all AWS resources, including certificates, S3 buckets, Lambda functions, and API gateways, are completely deleted.
+
+After all three destroy scripts run successfully, Terraform indicates that the environments are completely destroyed. Optional steps about removing Terraform workspaces from local state can be ignored, as they do not affect AWS resources. Verifying in the AWS console, CloudFront shows no distributions remaining; all three sets of services have been removed. This demonstrates the power and simplicity of Terraform: with a single command, you can bring up or tear down an entire environment, repeatably and reliably. The slowest part is always the CloudFront distribution propagation, which is expected given the heavy lifting involved.
+
+This concludes day four of week two. Optional sections provide additional insights on workspaces, testing, and troubleshooting. Returning to the slides, we can reflect on the architecture diagram and appreciate that Terraform provisioned all the resources seen there three times over—for dev, test, and prod. We also verified by checking three simultaneous conversations and observing resources appear and disappear in the console.
+
+With that, day four wraps up. You now have Terraform in your toolkit and can confidently create, manage, and destroy AWS environments. This marks roughly 45% of the way through the course. Tomorrow, we move on to GitHub Actions, which will allow us to trigger deployments automatically on git push, running everything—including Terraform—on demand. Terraform is now part of your skillset, and you are officially a Terraform practitioner. Congratulations!
